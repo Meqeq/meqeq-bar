@@ -6,7 +6,9 @@ use std::{thread, time};
 
 use gtk::ffi::gtk_css_provider_error_get_type;
 use gtk::gdk::Screen;
+use gtk::glib::Propagation;
 use gtk::CssProvider;
+use gtk::EventBox;
 use gtk::StyleContext;
 use gtk::{
     prelude::{ContainerExt, CssProviderExt, GtkWindowExt, StyleContextExt, WidgetExt},
@@ -14,7 +16,6 @@ use gtk::{
 };
 use gtk_layer_shell::LayerShell;
 use tauri::{Manager, Url};
-
 struct AppState {
     popup: ApplicationWindow,
 }
@@ -31,21 +32,12 @@ fn greet(name: &str) -> String {
 #[tauri::command]
 async fn open_window(app: tauri::AppHandle) {
     let data = app.state::<AppState>();
-
-    let mut webview = app.get_webview_window("label").unwrap();
-
     data.popup.show_all();
+}
 
-    let ten_millis = time::Duration::from_millis(10000);
-
-    thread::sleep(ten_millis);
-
-    println!("{}", webview.url().unwrap());
-    // webview.navigate(tauri::Url("dupa".into()));
-    webview.navigate(Url::parse("tauri://localhost/lll").unwrap());
-
-    thread::sleep(ten_millis);
-
+#[tauri::command]
+async fn close_window(app: tauri::AppHandle) {
+    let data = app.state::<AppState>();
     data.popup.hide();
 }
 
@@ -71,7 +63,7 @@ pub fn run() {
             gtk_window.init_layer_shell();
 
             // Just works.
-            gtk_window.set_layer(gtk_layer_shell::Layer::Top);
+            gtk_window.set_layer(gtk_layer_shell::Layer::Bottom);
 
             gtk_window.set_anchor(gtk_layer_shell::Edge::Bottom, true);
             gtk_window.set_exclusive_zone(48);
@@ -84,7 +76,7 @@ pub fn run() {
             let popup_window = tauri::WebviewWindowBuilder::new(
                 app,
                 "label",
-                tauri::WebviewUrl::App("wwww".into()),
+                tauri::WebviewUrl::App("/popup/calendar".into()),
             )
             .transparent(true)
             .build()?;
@@ -108,16 +100,14 @@ pub fn run() {
             // Just works.
             popup.set_layer(gtk_layer_shell::Layer::Top);
 
-            popup.set_anchor(gtk_layer_shell::Edge::Right, true);
-
-            popup.set_width_request(200);
-            popup.set_height_request(200);
+            popup.set_width_request(1080);
+            popup.set_height_request(1920);
 
             app.manage(AppState { popup });
 
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![open_window, greet])
+        .invoke_handler(tauri::generate_handler![open_window, greet, close_window])
         .run(tauri::generate_context!())
         .unwrap();
 }
