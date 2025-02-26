@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "identifier": "com.meqeq-bar.app",
   "build": {
-    "beforeDevCommand": "npm run serve",
+    "beforeDevCommand": "export WEBKIT_DISABLE_DMABUF_RENDERER=1 && npm run serve",
     "devUrl": "http://localhost:1420",
     "beforeBuildCommand": "npm run build",
     "frontendDist": "../dist/bar/browser"

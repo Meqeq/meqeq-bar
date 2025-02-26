@@ -15,13 +15,24 @@ use gtk::{
     ApplicationWindow,
 };
 use gtk_layer_shell::LayerShell;
-use tauri::{Manager, Url};
+use hyprland::event_listener::WindowFloatEventData;
+use serde::Deserialize;
+use serde::Serialize;
+use tauri::{AppHandle, Emitter, Manager};
 struct AppState {
     popup: ApplicationWindow,
 }
 
+use hyprland::event_listener::EventListener;
+
 unsafe impl Send for AppState {}
 unsafe impl Sync for AppState {}
+
+#[derive(Serialize, Deserialize)]
+struct Kek {
+    class: String,
+    title: String,
+}
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
@@ -30,15 +41,33 @@ fn greet(name: &str) -> String {
 }
 
 #[tauri::command]
-async fn open_window(app: tauri::AppHandle) {
+async fn open_window(app: AppHandle) {
     let data = app.state::<AppState>();
     data.popup.show_all();
 }
 
 #[tauri::command]
-async fn close_window(app: tauri::AppHandle) {
+async fn close_window(app: AppHandle) {
     let data = app.state::<AppState>();
     data.popup.hide();
+}
+
+#[tauri::command]
+fn active_window(app: AppHandle) {
+    // let mut listener = EventListener::new();
+
+    // listener.add_active_window_changed_handler(|data| {
+    //     let event_data = data.unwrap();
+    //     let stringified = serde_json::to_string(&Kek {
+    //         class: event_data.class,
+    //         title: event_data.title,
+    //     })
+    //     .unwrap();
+
+    //     app.emit("active_window_changed", "stringified").unwrap();
+    // });
+
+    // listener.start_listener();
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
