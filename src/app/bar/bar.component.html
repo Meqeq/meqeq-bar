@@ -1,4 +1,11 @@
-<main class="flex justify-end p-2 h-12">
+<main class="flex justify-between p-2 h-12">
+  <div
+    class="flex gap-2 items-end bg-gray-800 text-white rounded-box px-3 py-2 text-center cursor-pointer hover:bg-gray-700"
+  >
+    <span class="text-md font-bold">{{ activeWindow().class }}</span>
+    <span class="text-xs text-gray-200"> {{ activeWindow().title }}</span>
+  </div>
+
   <div
     class="flex gap-2 items-center bg-gray-800 text-white rounded-box px-3 py-1 text-center cursor-pointer hover:bg-gray-700"
     (click)="lel()"

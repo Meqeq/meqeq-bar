@@ -53,21 +53,23 @@ async fn close_window(app: AppHandle) {
 }
 
 #[tauri::command]
-fn active_window(app: AppHandle) {
-    // let mut listener = EventListener::new();
+async fn active_window(app: AppHandle) {
+    let mut listener = EventListener::new();
 
-    // listener.add_active_window_changed_handler(|data| {
-    //     let event_data = data.unwrap();
-    //     let stringified = serde_json::to_string(&Kek {
-    //         class: event_data.class,
-    //         title: event_data.title,
-    //     })
-    //     .unwrap();
+    listener.add_active_window_changed_handler(move |data| {
+        let event_data = data.unwrap();
+        let stringified = serde_json::to_string(&Kek {
+            class: event_data.class,
+            title: event_data.title,
+        })
+        .unwrap();
 
-    //     app.emit("active_window_changed", "stringified").unwrap();
-    // });
+        println!("EMIT");
 
-    // listener.start_listener();
+        app.emit("active_window_change", stringified).unwrap();
+    });
+
+    listener.start_listener();
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -136,7 +138,12 @@ pub fn run() {
 
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![open_window, greet, close_window])
+        .invoke_handler(tauri::generate_handler![
+            open_window,
+            greet,
+            close_window,
+            active_window
+        ])
         .run(tauri::generate_context!())
         .unwrap();
 }
