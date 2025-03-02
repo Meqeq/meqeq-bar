@@ -2,10 +2,11 @@
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
   "description": "Capability for the main window",
-  "windows": ["main"],
+  "windows": ["main", "bar0", "bar1"],
   "permissions": [
     "core:default",
-      "opener:default",
-      "core:webview:allow-create-webview"
+    "opener:default",
+    "core:event:allow-listen",
+    "core:webview:allow-create-webview"
   ]
 }

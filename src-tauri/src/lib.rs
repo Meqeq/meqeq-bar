@@ -1,24 +1,17 @@
-// [dependencies]
-// gtk = "0.18.1"
-// gtk-layer-shell = "0.8.1"
 
-use std::{thread, time};
-
-use gtk::ffi::gtk_css_provider_error_get_type;
-use gtk::gdk::Screen;
-use gtk::glib::Propagation;
-use gtk::CssProvider;
-use gtk::EventBox;
-use gtk::StyleContext;
 use gtk::{
-    prelude::{ContainerExt, CssProviderExt, GtkWindowExt, StyleContextExt, WidgetExt},
+    prelude::{ContainerExt, GtkWindowExt, WidgetExt},
     ApplicationWindow,
 };
 use gtk_layer_shell::LayerShell;
-use hyprland::event_listener::WindowFloatEventData;
+use hyprland::data::*;
+use hyprland::prelude::*;
 use serde::Deserialize;
 use serde::Serialize;
 use tauri::{AppHandle, Emitter, Manager};
+
+mod gtk_utils; 
+
 struct AppState {
     popup: ApplicationWindow,
 }
@@ -56,6 +49,27 @@ async fn close_window(app: AppHandle) {
 async fn active_window(app: AppHandle) {
     let mut listener = EventListener::new();
 
+    let monitors = Monitors::get().unwrap().to_vec();
+    println!("{monitors:#?}");
+
+    let workspaces = Workspaces::get().unwrap().to_vec();
+    println!("{workspaces:#?}");
+
+    // let clients = Clients::get().unwrap().to_vec();
+    // println!("{clients:#?}");
+
+    let active_window = Client::get_active().unwrap().unwrap();
+    // println!("{active_window:#?}");
+
+
+    let stringified = serde_json::to_string(&Kek {
+        class: active_window.class,
+        title: active_window.title,
+    })
+    .unwrap();
+
+    app.emit("active_window_change", stringified).unwrap();
+
     listener.add_active_window_changed_handler(move |data| {
         let event_data = data.unwrap();
         let stringified = serde_json::to_string(&Kek {
@@ -64,12 +78,14 @@ async fn active_window(app: AppHandle) {
         })
         .unwrap();
 
-        println!("EMIT");
-
         app.emit("active_window_change", stringified).unwrap();
     });
 
-    listener.start_listener();
+    listener.add_workspace_changed_handler(|data| {
+        println!("{:?}", data);
+    });
+
+    listener.start_listener().unwrap();
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -79,30 +95,12 @@ pub fn run() {
             let main_window = app.get_webview_window("main").unwrap();
             main_window.hide().unwrap();
 
-            let gtk_window = gtk::ApplicationWindow::new(
-                &main_window.gtk_window().unwrap().application().unwrap(),
-            );
 
-            // To prevent the window from being black initially.
-            gtk_window.set_app_paintable(true);
+            let monitor_info = gtk_utils::get_monitor_info();
 
-            let vbox = main_window.default_vbox().unwrap();
-            main_window.gtk_window().unwrap().remove(&vbox);
-            gtk_window.add(&vbox);
-
-            // Doesn't throw errors.
-            gtk_window.init_layer_shell();
-
-            // Just works.
-            gtk_window.set_layer(gtk_layer_shell::Layer::Bottom);
-
-            gtk_window.set_anchor(gtk_layer_shell::Edge::Bottom, true);
-            gtk_window.set_exclusive_zone(48);
-
-            gtk_window.set_width_request(1080);
-            gtk_window.set_height_request(48);
-
-            gtk_window.show_all();
+            for info in monitor_info {
+                gtk_utils::display_status_bar(app, &info);
+            }
 
             let popup_window = tauri::WebviewWindowBuilder::new(
                 app,
