@@ -1,3 +1,5 @@
+mod gtk_utils;
+mod hyprland_utils;
 
 use gtk::{
     prelude::{ContainerExt, GtkWindowExt, WidgetExt},
@@ -6,14 +8,14 @@ use gtk::{
 use gtk_layer_shell::LayerShell;
 use hyprland::data::*;
 use hyprland::prelude::*;
+use hyprland_utils::{get_current_workspaces, WorkspaceInfo};
 use serde::Deserialize;
 use serde::Serialize;
 use tauri::{AppHandle, Emitter, Manager};
 
-mod gtk_utils; 
-
 struct AppState {
     popup: ApplicationWindow,
+    workspaces: Vec<WorkspaceInfo>,
 }
 
 use hyprland::event_listener::EventListener;
@@ -25,6 +27,12 @@ unsafe impl Sync for AppState {}
 struct Kek {
     class: String,
     title: String,
+}
+
+#[derive(Serialize, Deserialize)]
+struct WorkspacesInfo {
+    workspaces: Vec<WorkspaceInfo>,
+    active: i32,
 }
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
@@ -46,21 +54,25 @@ async fn close_window(app: AppHandle) {
 }
 
 #[tauri::command]
+fn set_current_workspace(id: i32) {
+    hyprland_utils::set_current_workspace(id);
+}
+
+#[tauri::command]
 async fn active_window(app: AppHandle) {
     let mut listener = EventListener::new();
 
-    let monitors = Monitors::get().unwrap().to_vec();
-    println!("{monitors:#?}");
+    // let monitors = Monitors::get().unwrap().to_vec();
+    // println!("{monitors:#?}");
 
-    let workspaces = Workspaces::get().unwrap().to_vec();
-    println!("{workspaces:#?}");
+    // let workspaces = Workspaces::get().unwrap().to_vec();
+    // println!("{workspaces:#?}");
 
     // let clients = Clients::get().unwrap().to_vec();
     // println!("{clients:#?}");
 
     let active_window = Client::get_active().unwrap().unwrap();
     // println!("{active_window:#?}");
-
 
     let stringified = serde_json::to_string(&Kek {
         class: active_window.class,
@@ -70,20 +82,38 @@ async fn active_window(app: AppHandle) {
 
     app.emit("active_window_change", stringified).unwrap();
 
+    
+    let state = app.state::<AppState>();
+    app.emit("workspaces", serde_json::to_string(&state.workspaces).unwrap()).unwrap();
+
     listener.add_active_window_changed_handler(move |data| {
         let event_data = data.unwrap();
-        let stringified = serde_json::to_string(&Kek {
+
+        //    let state = app.state::<AppState>();
+        // let workspace_info = serde_json::to_string(&WorkspacesInfo {
+        //     workspaces: state.workspaces,
+        //     active: Workspace::get_active().unwrap().id,
+        // }).unwrap();
+
+        let active_window = serde_json::to_string(&Kek {
             class: event_data.class,
             title: event_data.title,
         })
         .unwrap();
 
-        app.emit("active_window_change", stringified).unwrap();
+        app.emit("active_window_change", active_window).unwrap();
+        app.emit(
+            "active_workspace_change",
+            Workspace::get_active().unwrap().id,
+        )
+        .unwrap();
     });
 
-    listener.add_workspace_changed_handler(|data| {
-        println!("{:?}", data);
-    });
+    // listener.add_workspace_changed_handler(|data| {
+    //     let workspaces = Workspaces::get().unwrap().to_vec();
+    //     // println!("{workspaces:#?}");
+    //     // println!("{:?}", data);
+    // });
 
     listener.start_listener().unwrap();
 }
@@ -94,7 +124,6 @@ pub fn run() {
         .setup(|app| {
             let main_window = app.get_webview_window("main").unwrap();
             main_window.hide().unwrap();
-
 
             let monitor_info = gtk_utils::get_monitor_info();
 
@@ -132,7 +161,10 @@ pub fn run() {
             popup.set_width_request(1080);
             popup.set_height_request(1920);
 
-            app.manage(AppState { popup });
+            app.manage(AppState {
+                popup,
+                workspaces: get_current_workspaces(),
+            });
 
             Ok(())
         })
@@ -140,7 +172,8 @@ pub fn run() {
             open_window,
             greet,
             close_window,
-            active_window
+            active_window,
+            set_current_workspace
         ])
         .run(tauri::generate_context!())
         .unwrap();

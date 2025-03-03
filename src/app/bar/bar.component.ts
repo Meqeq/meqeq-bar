@@ -1,8 +1,8 @@
 import { DatePipe } from "@angular/common";
-import { Component } from "@angular/core";
+import { Component, input } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { invoke } from "@tauri-apps/api/core";
-import { interval, map, Observable, startWith } from "rxjs";
+import { interval, map, Observable, startWith, tap } from "rxjs";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { Event } from "@tauri-apps/api/event";
 
@@ -24,6 +24,12 @@ const fromTauriEvent = <Payload>(
   });
 };
 
+interface WorkspaceInfo {
+  id: number;
+  name: string;
+  monitor: number;
+}
+
 @Component({
   standalone: true,
   selector: "app-bar",
@@ -31,6 +37,10 @@ const fromTauriEvent = <Payload>(
   imports: [DatePipe],
 })
 export class BarComponent {
+  readonly monitor = input(0, {
+    transform: (v: any) => Number.parseInt(v),
+  });
+
   readonly time = toSignal(
     interval(1000).pipe(
       startWith(null),
@@ -43,6 +53,27 @@ export class BarComponent {
       "active_window_change",
     ).pipe(map((event) => event.payload)),
     { initialValue: { class: "", title: "" } },
+  );
+
+  readonly activeWorkspace = toSignal(
+    fromTauriEvent<number>("active_workspace_change").pipe(
+      map((event) => event.payload),
+    ),
+    { initialValue: 0 },
+  );
+
+  readonly workspaces = toSignal(
+    fromTauriEvent<WorkspaceInfo[]>("workspaces").pipe(
+      tap(console.log),
+      map((event) => event.payload),
+      map((workspaces) =>
+        workspaces.filter(
+          (workspace: any) => workspace.monitor === this.monitor(),
+        ),
+      ),
+      tap(console.log),
+    ),
+    { initialValue: [] as WorkspaceInfo[] },
   );
 
   ngOnInit(): void {
@@ -60,6 +91,11 @@ export class BarComponent {
     // fromTauriEvent<{ class: string, title: string }>("active_window_change").subscribe(console.log);
 
     invoke("active_window").then(() => {});
+  }
+
+  setCurrentWorkspace(id: number): void {
+    console.log(id);
+    invoke("set_current_workspace", { id });
   }
 
   lel(): void {

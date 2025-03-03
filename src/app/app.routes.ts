@@ -19,7 +19,7 @@ export const routes: Routes = [
           import("./popup/popup.component").then((c) => c.PopupComponent),
       },
       {
-        path: "",
+        path: ":monitor",
         loadComponent: () =>
           import("./bar/bar.component").then((c) => c.BarComponent),
       },

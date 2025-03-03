@@ -35,7 +35,7 @@ pub fn display_status_bar(app: &tauri::App, info: &MonitorInfo) {
     let window = tauri::WebviewWindowBuilder::new(
         app,
         format!("bar{}", info.index),
-        tauri::WebviewUrl::App("".into())
+        tauri::WebviewUrl::App(info.index.to_string().into())
     ).transparent(true).build().unwrap();
 
     window.hide().unwrap();
