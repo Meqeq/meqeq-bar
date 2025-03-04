@@ -2,7 +2,7 @@
   <div class="flex bg-gray-800 text-white rounded-box items-center px-1 gap-1">
     @for (workspace of workspaces(); track workspace.id) {
       <div
-        class="rounded-box bg-gray-600 p-1 w-6 h-6 text-center"
+        class="rounded-full bg-gray-600 leading-6 text-sm w-6 h-6 text-center"
         [class.cursor-pointer]="workspace.id !== activeWorkspace()"
         [class.bg-red-300]="workspace.id === activeWorkspace()"
         (click)="

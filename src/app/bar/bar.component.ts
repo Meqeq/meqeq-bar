@@ -77,20 +77,17 @@ export class BarComponent {
   );
 
   ngOnInit(): void {
+    console.log("ADWDWD");
     // const appWebview = getCurrentWebviewWindow();
     // console.log("DAWDAWDAWD");
-
     // appWebview.listen<string>("active_window_change", (event) => {
     //   console.log(event);
-
     //   const payload = JSON.parse(event.payload);
-
     //   this.windowClass = payload.class;
     // });
-
     // fromTauriEvent<{ class: string, title: string }>("active_window_change").subscribe(console.log);
-
-    invoke("active_window").then(() => {});
+    // invoke("active_window").then(() => {});
+    // invoke("on_add_workspace").then(() => {});
   }
 
   setCurrentWorkspace(id: number): void {
@@ -99,9 +96,9 @@ export class BarComponent {
   }
 
   lel(): void {
-    invoke("open_window").then(() => {
-      console.log("DAWDAWD");
-    });
+    // invoke("open_window").then(() => {
+    //   console.log("DAWDAWD");
+    // });
     // invoke("open_window2").then(() => {
     //   console.log("DAWDAWD");
     // });
@@ -114,7 +111,6 @@ export class BarComponent {
     //   y: 30,
     //   "title"
     // });
-
     // webview.once("tauri://created", function () {
     //   // webview successfully created
     //   console.log("AA");

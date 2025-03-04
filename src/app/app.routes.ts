@@ -23,6 +23,11 @@ export const routes: Routes = [
         loadComponent: () =>
           import("./bar/bar.component").then((c) => c.BarComponent),
       },
+      {
+        path: "",
+        loadComponent: () =>
+          import("./kek/kek.component").then((c) => c.KekComponent),
+      },
     ],
   },
 ];
