@@ -1,6 +1,7 @@
 mod commands;
 mod gtk_utils;
 mod hyprland_utils;
+mod pipewire_utils;
 
 use std::sync::Mutex;
 
@@ -8,7 +9,8 @@ use commands::{on_active_window_change, on_workspace_add, on_workspace_remove, A
 use gtk::prelude::{ContainerExt, GtkWindowExt, WidgetExt};
 use gtk_layer_shell::LayerShell;
 use hyprland_utils::{get_current_workspaces, WorkspaceInfo};
-use pipewire::{context::Context, main_loop::MainLoop};
+use pipewire_utils::set_up_pipewire;
+
 use serde::Deserialize;
 use serde::Serialize;
 use tauri::{AppHandle, Manager};
@@ -107,6 +109,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             // open_window,
             // close_window,
+            set_up_pipewire,
+            
             set_current_workspace,
             on_workspace_add,
             on_workspace_remove,

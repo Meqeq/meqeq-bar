@@ -20,6 +20,7 @@ export class KekComponent {
       invoke("on_workspace_add").then(() => {});
       invoke("on_workspace_remove").then(() => {});
       invoke("on_active_window_change");
+      invoke("set_up_pipewire");
     }, 1000);
   }
 }

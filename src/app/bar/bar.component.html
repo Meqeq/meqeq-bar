@@ -1,10 +1,10 @@
 <main class="flex justify-between p-2 h-12">
-  <div class="flex bg-gray-800 text-white rounded-box items-center px-1 gap-1">
+  <div class="flex text-white items-center gap-1">
     @for (workspace of workspaces(); track workspace.id) {
       <div
-        class="rounded-full bg-gray-600 leading-6 text-sm w-6 h-6 text-center"
+        class="rounded-full bg-gray-800 leading-6 text-sm w-6 h-6 text-center"
         [class.cursor-pointer]="workspace.id !== activeWorkspace()"
-        [class.bg-red-300]="workspace.id === activeWorkspace()"
+        [class.bg-red-400]="workspace.id === activeWorkspace()"
         (click)="
           workspace.id !== activeWorkspace() &&
             setCurrentWorkspace(workspace.id)
@@ -22,14 +22,18 @@
     <span class="text-xs text-gray-200"> {{ activeWindow().title }}</span>
   </div>
 
-  <div
-    class="flex gap-2 items-center bg-gray-800 text-white rounded-box px-3 py-1 text-center cursor-pointer hover:bg-gray-700"
-    (click)="lel()"
-  >
-    <span class="text-md font-bold">{{ time() | date: "HH:mm" }}</span>
+  <div class="flex gap-2">
+    <app-sound></app-sound>
 
-    <span class="text-xs text-gray-200">{{
-      time() | date: "dd MMM yyyy"
-    }}</span>
+    <div
+      class="flex gap-2 items-center bg-gray-800 text-white rounded-box px-3 py-1 text-center cursor-pointer hover:bg-gray-700"
+      (click)="lel()"
+    >
+      <span class="text-md font-bold">{{ time() | date: "HH:mm" }}</span>
+
+      <span class="text-xs text-gray-200">{{
+        time() | date: "dd MMM yyyy"
+      }}</span>
+    </div>
   </div>
 </main>

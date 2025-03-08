@@ -2,27 +2,10 @@ import { DatePipe } from "@angular/common";
 import { Component, input } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { invoke } from "@tauri-apps/api/core";
-import { interval, map, Observable, startWith, tap } from "rxjs";
-import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
-import { Event } from "@tauri-apps/api/event";
+import { interval, map, startWith, tap } from "rxjs";
+import { SoundComponent } from "./sound/sound.component";
 
-const fromTauriEvent = <Payload>(
-  eventName: string,
-): Observable<Event<Payload>> => {
-  const appWebview = getCurrentWebviewWindow();
-
-  return new Observable((subscriber) => {
-    const unlisten = appWebview.listen(eventName, (event) => {
-      subscriber.next({
-        ...event,
-        payload: JSON.parse(event.payload as string),
-      } as Event<Payload>);
-    });
-    return () => {
-      unlisten.then((fn) => fn());
-    };
-  });
-};
+import { fromTauriEvent } from "../common/tauri-utils";
 
 interface WorkspaceInfo {
   id: number;
@@ -31,10 +14,9 @@ interface WorkspaceInfo {
 }
 
 @Component({
-  standalone: true,
   selector: "app-bar",
   templateUrl: "./bar.component.html",
-  imports: [DatePipe],
+  imports: [DatePipe, SoundComponent],
 })
 export class BarComponent {
   readonly monitor = input(0, {
