@@ -58,6 +58,15 @@ fn get_volume(id: u32) -> f32 {
     }
 }
 
+pub fn set_volume(id: u32, volume: f32) {
+    let output = Command::new("wpctl")
+        .arg("set-volume")
+        .arg(id.to_string())
+        .arg(volume.to_string())
+        .output()
+        .expect("Nie udało się uruchomić wpctl");
+}
+
 fn get_pipewire(app: AppHandle) {
     let mut output = Command::new("zsh")
         .arg("-c")

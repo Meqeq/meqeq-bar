@@ -1,1 +1,12 @@
-<div class="bg-white">{{ type() }}</div>
+<div
+  class="h-screen w-screen overflow-hidden flex flex-col justify-end items-end"
+  (click)="close()"
+>
+  <div class="w-fit" (click)="$event.stopPropagation()">
+    @switch (service.activePopup().name) {
+      @case ("sound") {
+        <app-sound-popup></app-sound-popup>
+      }
+    }
+  </div>
+</div>

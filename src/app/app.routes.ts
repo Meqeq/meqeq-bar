@@ -14,7 +14,7 @@ export const routes: Routes = [
           ),
       },
       {
-        path: "popup/:type",
+        path: "popup/:monitor/:type",
         loadComponent: () =>
           import("./popup/popup.component").then((c) => c.PopupComponent),
       },

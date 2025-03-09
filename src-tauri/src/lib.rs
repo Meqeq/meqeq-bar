@@ -5,9 +5,10 @@ mod pipewire_utils;
 
 use std::sync::Mutex;
 
-use commands::{on_active_window_change, on_workspace_add, on_workspace_remove, AppState};
-use gtk::prelude::{ContainerExt, GtkWindowExt, WidgetExt};
-use gtk_layer_shell::LayerShell;
+use commands::{
+    close_popup, on_active_window_change, on_workspace_add, on_workspace_remove, open_popup,
+    set_volume, AppState,
+};
 use hyprland_utils::{get_current_workspaces, WorkspaceInfo};
 use pipewire_utils::set_up_pipewire;
 
@@ -19,18 +20,6 @@ use tauri::{AppHandle, Manager};
 struct WorkspacesInfo {
     workspaces: Vec<WorkspaceInfo>,
     active: i32,
-}
-
-#[tauri::command]
-async fn open_window(app: AppHandle) {
-    let data = app.state::<AppState>();
-    data.popup.show_all();
-}
-
-#[tauri::command]
-async fn close_window(app: AppHandle) {
-    let data = app.state::<AppState>();
-    data.popup.hide();
 }
 
 #[tauri::command]
@@ -47,43 +36,50 @@ pub fn run() {
 
             let monitor_info = gtk_utils::get_monitor_info();
 
-            for info in monitor_info {
-                gtk_utils::display_status_bar(app, &info);
+            for info in &monitor_info {
+                gtk_utils::display_status_bar(app, info);
             }
 
-            let popup_window = tauri::WebviewWindowBuilder::new(
-                app,
-                "label",
-                tauri::WebviewUrl::App("/popup/calendar".into()),
-            )
-            .transparent(true)
-            .build()?;
+            let mut popups = Vec::with_capacity(monitor_info.len());
 
-            popup_window.hide().unwrap();
+            for info in &monitor_info {
+                popups.push(gtk_utils::create_popup_window(app, info));
+            }
 
-            let popup = gtk::ApplicationWindow::new(
-                &popup_window.gtk_window().unwrap().application().unwrap(),
-            );
+            // Let popup_window = tauri::WebviewWindowBuilder::new(
+            //     app,
+            //     "label",
+            //     tauri::WebviewUrl::App("/popup/calendar".into()),
+            // )
+            // .transparent(true)
+            // .build()?;
+      
 
-            popup.set_app_paintable(true);
+            // popup_window.hide().unwrap();
 
-            let vbox = popup_window.default_vbox().unwrap();
+            // let popup = gtk::ApplicationWindow::new(
+            //     &popup_window.gtk_window().unwrap().application().unwrap(),
+            // );
 
-            popup_window.gtk_window().unwrap().remove(&vbox);
-            popup.add(&vbox);
+            // popup.set_app_paintable(true);
 
-            // Doesn't throw errors.
-            popup.init_layer_shell();
+            // let vbox = popup_window.default_vbox().unwrap();
 
-            // Just works.
-            popup.set_layer(gtk_layer_shell::Layer::Top);
+            // popup_window.gtk_window().unwrap().remove(&vbox);
+            // popup.add(&vbox);
 
-            popup.set_width_request(1080);
-            popup.set_height_request(1920);
+            // // Doesn't throw errors.
+            // popup.init_layer_shell();
+
+            // // Just works.
+            // popup.set_layer(gtk_layer_shell::Layer::Top);
+
+            // popup.set_width_request(1080);
+            // popup.set_height_request(1920);
 
             let workspaces = get_current_workspaces();
 
-            app.manage(Mutex::new(AppState { popup, workspaces }));
+            app.manage(Mutex::new(AppState { popups, workspaces }));
 
             // let mainloop = MainLoop::new(None)?;
             // let context = Context::new(&mainloop)?;
@@ -109,8 +105,10 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             // open_window,
             // close_window,
+            open_popup,
+            close_popup,
+            set_volume,
             set_up_pipewire,
-            
             set_current_workspace,
             on_workspace_add,
             on_workspace_remove,

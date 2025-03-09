@@ -60,6 +60,7 @@ export class BarComponent {
 
   ngOnInit(): void {
     console.log("ADWDWD");
+
     // const appWebview = getCurrentWebviewWindow();
     // console.log("DAWDAWDAWD");
     // appWebview.listen<string>("active_window_change", (event) => {

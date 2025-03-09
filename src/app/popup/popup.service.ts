@@ -1,15 +1,23 @@
-import { Component, computed, effect } from "@angular/core";
+import { computed, effect, Injectable } from "@angular/core";
+import { fromTauriEvent } from "../common/tauri-utils";
+import { map, scan } from "rxjs";
+import { PipeWireMetadata, PipeWireNode } from "../common/types";
 import { toSignal } from "@angular/core/rxjs-interop";
-import { fromTauriEvent } from "../../common/tauri-utils";
-import { scan } from "rxjs";
-import { invoke } from "@tauri-apps/api/core";
-import { PipeWireMetadata, PipeWireNode } from "../../common/types";
 
-@Component({
-  selector: "app-sound",
-  templateUrl: "./sound.component.html",
+export interface ActivePopup {
+  name: string;
+  monitor: number;
+}
+
+@Injectable({
+  providedIn: "root",
 })
-export class SoundComponent {
+export class PopupService {
+  readonly activePopup = toSignal(
+    fromTauriEvent<ActivePopup>("active_popup").pipe(map((e) => e.payload)),
+    { initialValue: { name: "sound", monitor: 0 } },
+  );
+
   readonly defaults = toSignal(
     fromTauriEvent<PipeWireMetadata>("pipewire_metadata"),
   );
@@ -19,10 +27,10 @@ export class SoundComponent {
         (acc, node) => {
           console.log(node);
 
-          acc.nodeMapId.set(node.payload.id, node.payload);
-          acc.nodeMapName.set(node.payload.name, node.payload);
-
           if (acc.nodeMapId.has(node.payload.id)) {
+            acc.nodeMapId.set(node.payload.id, node.payload);
+            acc.nodeMapName.set(node.payload.name, node.payload);
+
             return {
               ...acc,
               nodes: acc.nodes.map((n) =>
@@ -30,6 +38,9 @@ export class SoundComponent {
               ),
             };
           } else {
+            acc.nodeMapId.set(node.payload.id, node.payload);
+            acc.nodeMapName.set(node.payload.name, node.payload);
+
             return {
               ...acc,
               nodes: [...acc.nodes, node.payload],
@@ -62,12 +73,6 @@ export class SoundComponent {
 
     effect(() => {
       console.log(this.nodes());
-    });
-  }
-
-  open(): void {
-    invoke("open_popup", { popup: "sound" }).then(() => {
-      console.log("DAWDAWD");
     });
   }
 }

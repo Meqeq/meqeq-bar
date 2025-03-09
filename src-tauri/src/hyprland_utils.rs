@@ -1,9 +1,9 @@
 use std::sync::Mutex;
 
 use hyprland::{
-    data::{Monitor, Workspaces},
+    data::{Workspaces},
     dispatch::Dispatch,
-    shared::{Address, HyprData, HyprDataActive},
+    shared::{Address, HyprData},
 };
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Manager};
