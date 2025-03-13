@@ -15,7 +15,7 @@ export interface ActivePopup {
 export class PopupService {
   readonly activePopup = toSignal(
     fromTauriEvent<ActivePopup>("active_popup").pipe(map((e) => e.payload)),
-    { initialValue: { name: "sound", monitor: 0 } },
+    { initialValue: { name: "", monitor: 0 } },
   );
 
   readonly defaults = toSignal(

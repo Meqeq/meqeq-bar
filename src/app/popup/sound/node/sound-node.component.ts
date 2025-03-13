@@ -31,6 +31,12 @@ export class SoundNodeComponent implements OnInit, OnDestroy {
     this.sub.unsubscribe();
   }
 
+  setDefault(): void {
+    invoke("set_default", {
+      id: this.node().id,
+    })
+  }
+  
   setVolume(id: number, volume: number): void {
     console.log(id, volume);
     invoke("set_volume", {

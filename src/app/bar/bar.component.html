@@ -2,7 +2,7 @@
   <div class="flex text-white items-center gap-1">
     @for (workspace of workspaces(); track workspace.id) {
       <div
-        class="rounded-full bg-gray-800 leading-6 text-sm w-6 h-6 text-center"
+        class="rounded-full bg-gray-800 leading-7 w-7 h-7 text-center"
         [class.cursor-pointer]="workspace.id !== activeWorkspace()"
         [class.bg-red-400]="workspace.id === activeWorkspace()"
         (click)="
@@ -16,18 +16,20 @@
   </div>
 
   <div
-    class="flex gap-2 items-end bg-gray-800 text-white rounded-box px-3 py-2 text-center"
+    class="flex gap-2 items-center bg-gray-800 text-white rounded-box px-3 py-2 text-center"
   >
     <span class="text-md font-bold">{{ activeWindow().class }}</span>
     <span class="text-xs text-gray-200"> {{ activeWindow().title }}</span>
   </div>
 
+
   <div class="flex gap-2">
+  @if(monitor() === 0) {
     <app-sound></app-sound>
 
     <div
       class="flex gap-2 items-center bg-gray-800 text-white rounded-box px-3 py-1 text-center cursor-pointer hover:bg-gray-700"
-      (click)="lel()"
+      (click)="openCalendar()"
     >
       <span class="text-md font-bold">{{ time() | date: "HH:mm" }}</span>
 
@@ -35,5 +37,9 @@
         time() | date: "dd MMM yyyy"
       }}</span>
     </div>
-  </div>
+  }
+  
+  </div>    
+  
+
 </main>

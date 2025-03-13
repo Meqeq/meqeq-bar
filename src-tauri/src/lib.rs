@@ -7,7 +7,7 @@ use std::sync::Mutex;
 
 use commands::{
     close_popup, on_active_window_change, on_workspace_add, on_workspace_remove, open_popup,
-    set_volume, AppState,
+    set_default, set_volume, AppState,
 };
 use hyprland_utils::{get_current_workspaces, WorkspaceInfo};
 use pipewire_utils::set_up_pipewire;
@@ -53,7 +53,6 @@ pub fn run() {
             // )
             // .transparent(true)
             // .build()?;
-      
 
             // popup_window.hide().unwrap();
 
@@ -108,6 +107,7 @@ pub fn run() {
             open_popup,
             close_popup,
             set_volume,
+            set_default,
             set_up_pipewire,
             set_current_workspace,
             on_workspace_add,

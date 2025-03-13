@@ -4,10 +4,12 @@ import { fromTauriEvent } from "../../common/tauri-utils";
 import { scan } from "rxjs";
 import { invoke } from "@tauri-apps/api/core";
 import { PipeWireMetadata, PipeWireNode } from "../../common/types";
+import { DecimalPipe } from "@angular/common";
 
 @Component({
   selector: "app-sound",
   templateUrl: "./sound.component.html",
+  imports: [DecimalPipe]
 })
 export class SoundComponent {
   readonly defaults = toSignal(

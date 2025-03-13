@@ -1,7 +1,7 @@
 use std::sync::Mutex;
 
 use hyprland::{
-    data::{Workspaces},
+    data::Workspaces,
     dispatch::Dispatch,
     shared::{Address, HyprData},
 };
@@ -19,9 +19,9 @@ pub struct WorkspaceInfo {
     pub last_window: Address,
 }
 
+
 pub fn get_current_workspaces() -> Vec<WorkspaceInfo> {
     // let workspaces = Workspaces::get().unwrap();
-
     let mut workspaces = Vec::new();
 
     for workspace in Workspaces::get().unwrap() {
@@ -43,7 +43,7 @@ pub fn set_current_workspace(id: i32, app: AppHandle) {
         hyprland::dispatch::WorkspaceIdentifierWithSpecial::Id(id),
     )) {
         Ok(res) => res,
-        Err(error) => {
+        Err(_) => {
             let state = app.state::<Mutex<AppState>>();
             let state = state.lock().unwrap();
 

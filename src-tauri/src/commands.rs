@@ -1,6 +1,6 @@
 use std::sync::Mutex;
 
-use gtk::{prelude::WidgetExt, ApplicationWindow};
+use gtk::prelude::WidgetExt;
 use hyprland::{
     data::{Client, Workspace},
     event_listener::EventListener,
@@ -86,31 +86,38 @@ pub async fn on_workspace_remove(app: AppHandle) {
 
 #[command]
 pub async fn on_active_window_change(app: AppHandle) {
-    let active_window = Client::get_active().unwrap().unwrap();
-    println!("AAA: {:?}", active_window);
+    match Client::get_active() {
+        Ok(window) => match window {
+            Some(active_window) => {
+                println!("AAA: {:?}", active_window);
 
-    app.emit(
-        "active_window_change",
-        serde_json::to_string(&ActiveWindow {
-            class: active_window.class,
-            title: active_window.title,
-        })
-        .unwrap(),
-    )
-    .unwrap();
+                app.emit(
+                    "active_window_change",
+                    serde_json::to_string(&ActiveWindow {
+                        class: active_window.class,
+                        title: active_window.title,
+                    })
+                    .unwrap(),
+                )
+                .unwrap();
 
-    app.emit("active_workspace_change", active_window.workspace.id)
-        .unwrap();
+                app.emit("active_workspace_change", active_window.workspace.id)
+                    .unwrap();
 
-    {
-        let state = app.state::<Mutex<AppState>>();
-        let state = state.lock().unwrap();
+                {
+                    let state = app.state::<Mutex<AppState>>();
+                    let state = state.lock().unwrap();
 
-        app.emit(
-            "workspaces",
-            serde_json::to_string(&state.workspaces).unwrap(),
-        )
-        .unwrap();
+                    app.emit(
+                        "workspaces",
+                        serde_json::to_string(&state.workspaces).unwrap(),
+                    )
+                    .unwrap();
+                }
+            }
+            None => {}
+        },
+        Err(_) => {}
     }
 
     let mut listener = EventListener::new();
@@ -144,7 +151,7 @@ pub struct ActivePopup {
 #[command]
 pub async fn open_popup(app: AppHandle, popup: String) {
     let state = app.state::<Mutex<AppState>>();
-    let mut state = state.lock().unwrap();
+    let state = state.lock().unwrap();
 
     println!("{:?}", popup);
 
@@ -164,7 +171,8 @@ pub async fn open_popup(app: AppHandle, popup: String) {
             monitor: 0,
         })
         .unwrap(),
-    ).unwrap();
+    )
+    .unwrap();
 
     state.popups[0].window.show_all();
 }
@@ -174,10 +182,25 @@ pub async fn close_popup(app: AppHandle) {
     let state = app.state::<Mutex<AppState>>();
     let state = state.lock().unwrap();
 
+    app.emit(
+        "active_popup",
+        serde_json::to_string(&ActivePopup {
+            name: "".to_string(),
+            monitor: 0,
+        })
+        .unwrap(),
+    )
+    .unwrap();
+
     state.popups[0].window.hide();
 }
 
 #[command]
 pub async fn set_volume(id: u32, volume: f32) {
     pipewire_utils::set_volume(id, volume);
+}
+
+#[command]
+pub async fn set_default(id: u32) {
+    pipewire_utils::set_default(id);
 }

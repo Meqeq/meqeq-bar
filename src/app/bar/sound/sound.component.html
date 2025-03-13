@@ -2,5 +2,5 @@
   class="flex gap-2 items-center bg-gray-800 text-white rounded-box px-3 py-1 text-center cursor-pointer hover:bg-gray-700"
   (click)="open()"
 >
-  {{ defaultVolume() }} %
+  {{ defaultVolume() | number: '1.0-0' }} %
 </div>

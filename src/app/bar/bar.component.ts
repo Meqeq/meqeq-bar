@@ -78,6 +78,12 @@ export class BarComponent {
     invoke("set_current_workspace", { id });
   }
 
+  openCalendar(): void {
+    invoke("open_popup", { popup: "calendar" }).then(() => {
+      console.log("DAWDAWD");
+    });
+  }
+
   lel(): void {
     // invoke("open_window").then(() => {
     //   console.log("DAWDAWD");

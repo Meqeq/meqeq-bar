@@ -13,6 +13,6 @@ export class AppComponent {
     greetingMessage = "";
 
     ngOnInit(): void {
-        console.log("AAAAA", new Date().toISOString());
+      console.log("AAAAA", new Date().toISOString());
     }
 }

@@ -1,10 +1,12 @@
 <div class="py-2" [class.text-red-400]="active()">
-  <p class="text-lg font-bold">
-    {{ node().description }}
-  </p>
-  <p class="text-sm mb-2">
-    {{ node().nick }}
-  </p>
+  <div class="mb-2 cursor-pointer" (click)="setDefault()">
+    <p class="text-lg font-bold">
+      {{ node().description }}
+    </p>
+    <p class="text-sm">
+      {{ node().nick }}
+    </p>
+  </div>
 
   <div class="w-full">
     <input
@@ -15,7 +17,7 @@
       max="1"
       [formControl]="volumeControl"
     />
-    <div class="flex justify-between text-xs my-1">
+    <div class="flex justify-between text-xs my-1 -mt-2">
       <span>|</span>
       <span>|</span>
       <span>|</span>

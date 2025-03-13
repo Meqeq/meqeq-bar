@@ -6,10 +6,6 @@ use std::{
 use pipewire::{
     context::Context,
     main_loop::MainLoop,
-    sys::{
-        pw_context_find_global, pw_core_find_proxy, pw_proxy_get_bound_id, pw_proxy_get_id,
-        pw_proxy_get_type,
-    },
 };
 use serde::{Deserialize, Serialize};
 use tauri::{command, AppHandle, Emitter};
@@ -67,6 +63,16 @@ pub fn set_volume(id: u32, volume: f32) {
         .expect("Nie udało się uruchomić wpctl");
 }
 
+
+pub fn set_default(id: u32) {
+    let output = Command::new("wpctl")
+        .arg("set-default")
+        .arg(id.to_string())
+        .output()
+        .expect("Nie udało się uruchomić wpctl");
+}
+
+
 fn get_pipewire(app: AppHandle) {
     let mut output = Command::new("zsh")
         .arg("-c")
@@ -95,11 +101,8 @@ fn get_pipewire(app: AppHandle) {
 
                     node.volume = get_volume(node.id);
 
-                    app.emit(
-                        "pipewire_node",
-                        serde_json::to_string(&node).unwrap(),
-                    )
-                    .unwrap();
+                    app.emit("pipewire_node", serde_json::to_string(&node).unwrap())
+                        .unwrap();
 
                     println!("Otrzymano: {:?}", node);
                 } else if pw_object.type_ == "PipeWire:Interface:Metadata" {
@@ -132,49 +135,6 @@ pub async fn set_up_pipewire(app: AppHandle) -> Result<(), ()> {
     let registry = core.get_registry().unwrap();
 
     get_pipewire(app);
-
-    // Port::add_listener_local()
-    //     .param(|d, e,f,h,j| println!("{:?}", d))
-    //     .register();
-
-    // Register a callback to the `global` event on the registry, which notifies of any new global objects
-    // appearing on the remote.
-    // The callback will only get called as long as we keep the returned listener alive.
-    // let _listener = registry
-    //     .add_listener_local()
-    //     .global(move |global| {
-    //         // let t = match global.props.unwrap().get("factory.type.name") {
-    //         //     Ok(value) => value,
-    //         //     Err(error) => { "eee" },
-    //         // };
-
-    //         if global.type_.to_str() == "PipeWire:Interface:Node" {
-    //             // let media_class = global.props.unwrap().get("media.class").unwrap_or("");
-    //             let media_class = "Audio/Sink";
-
-    //             if media_class == "Audio/Sink" {
-    //                 println!("Audio sink: {:?}", global);
-
-    //                 println!("VOLUME: {:?}", get_volume(global.id));
-    //             }
-    //         }
-    //         // else if (global.type_.to_str() == "PipeWire:Interface:Client") {
-    //         //                 println!("client : {:?}", global);
-    //         // }
-    //         else if(global.type_.to_str() == "PipeWire:Interface:Metadata") {
-    //             println!("MMMMM: {:?}", global);
-    //         }
-    //         else {
-    //             println!("UNKNOWN: {:?}", global.type_.to_str());
-    //         }
-    //     })
-    //     .register();
-
-    // // Calling the `destroy_global` method on the registry will destroy the object with the specified id on the remote.
-    // // We don't have a specific object to destroy now, so this is commented out.
-    // // registry.destroy_global(313).into_result()?;
-
-    // mainloop.run();
 
     Ok(())
 }

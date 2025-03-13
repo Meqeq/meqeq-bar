@@ -7,12 +7,13 @@ import { fromTauriEvent } from "../common/tauri-utils";
 
 import { PopupService } from "./popup.service";
 import { JsonPipe } from "@angular/common";
+import { CalendarComponent } from "./calendar/calendar.component";
 
 @Component({
   standalone: true,
   selector: "app-popup",
   templateUrl: "./popup.component.html",
-  imports: [SoundPopupComponent, JsonPipe],
+  imports: [SoundPopupComponent, CalendarComponent, JsonPipe],
 })
 export class PopupComponent {
   private readonly route = inject(ActivatedRoute);
