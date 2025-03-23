@@ -39,6 +39,7 @@ pub fn get_current_workspaces() -> Vec<WorkspaceInfo> {
 }
 
 pub fn set_current_workspace(id: i32, app: AppHandle) {
+
     match Dispatch::call(hyprland::dispatch::DispatchType::Workspace(
         hyprland::dispatch::WorkspaceIdentifierWithSpecial::Id(id),
     )) {

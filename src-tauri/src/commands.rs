@@ -1,5 +1,3 @@
-use std::sync::Mutex;
-
 use gtk::prelude::WidgetExt;
 use hyprland::{
     data::{Client, Workspace},
@@ -7,9 +5,17 @@ use hyprland::{
     shared::{HyprDataActive, HyprDataActiveOptional},
 };
 use serde::{Deserialize, Serialize};
+use std::{
+    borrow::Borrow, collections::HashMap, fmt::Debug, sync::{Arc, Mutex}
+};
+use std::{thread, time};
 use tauri::{command, AppHandle, Emitter, Manager};
+use trpl::StreamExt;
+use zbus::{fdo, message::Header, object_server::Interface, proxy, Connection};
 
-use crate::{gtk_utils::Popup, hyprland_utils::WorkspaceInfo, pipewire_utils};
+use crate::{dbus::{StatusNotifierWatcher}, gtk_utils::Popup, hyprland_utils::WorkspaceInfo, pipewire_utils};
+use std::process;
+use zbus::interface;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ActiveWindow {
@@ -203,4 +209,80 @@ pub async fn set_volume(id: u32, volume: f32) {
 #[command]
 pub async fn set_default(id: u32) {
     pipewire_utils::set_default(id);
+}
+
+struct StatusNotifierHost {}
+
+#[interface(name = "org.kde.StatusNotifierHost")]
+impl StatusNotifierHost {}
+
+
+#[command]
+pub async fn dbus() {
+    // let clone2 = Connection::session().await.unwrap();
+    // clone2
+    //     .request_name(format!("org.kde.StatusNotifierHost-{}", process::id()))
+    //     .await
+    //     .unwrap();
+
+    // let server2 = clone2
+    //     .object_server()
+    //     .at("/StatusNotifierHost", StatusNotifierHost {});
+
+    // trpl::join3( keke(&clone2), w, server2).await;
+
+    //trpl::join(w, keke(&clone2)).await;
+
+  
+    StatusNotifierWatcher::serve().await;
+    
+    println!("KARWASZ TWARZ");
+
+    let ten_millis = time::Duration::from_millis(1000000);
+
+    thread::sleep(ten_millis);
+
+    // Utworzenie proxy dla usługi StatusNotifierWatcher
+    // let proxy = connection.with_proxy(
+    //     "org.kde.StatusNotifierWatcher", // nazwa usługi
+    //     "/StatusNotifierWatcher",        // ścieżka obiektu
+    //     Duration::from_secs(5),          // timeout
+    // );
+
+    // let proxy = Proxy::new(
+    //     "org.kde.StatusNotifierWatcher",
+    //     "/StatusNotifierWatcher",
+    //     std::time::Duration::from_millis(5000),
+    //     &connection,
+    // );
+
+    // let (kk, ): (, ) = proxy.method_call(
+    //     "org.kde.StatusNotifierWatcher",
+    //     "RegisterStatusNotifierHost",
+    //     ("dummy.name.without.owner",),
+    // ).unwrap();
+
+    // assert_eq!(has_owner, false);
+
+    // proxy
+    //     .method_call(
+    //         "org.kde.StatusNotifierWatcher",
+    //         "RegisterStatusNotifierHost",
+    //         (("meqeq-bar"), ),
+    //     )
+    //     .unwrap();
+
+    // // Pobranie właściwości RegisteredStatusNotifierItems
+    // let items: Vec<String> = proxy
+    //     .get(
+    //         "org.kde.StatusNotifierWatcher", // interfejs
+    //         "RegisteredStatusNotifierItems", // właściwość
+    //     )
+    //     .expect("Nie udało się pobrać tray items");
+
+    // // Wypisanie pobranej listy
+    // println!("Zarejestrowane tray items:");
+    // for item in items {
+    //     println!(" - {}", item);
+    // }
 }

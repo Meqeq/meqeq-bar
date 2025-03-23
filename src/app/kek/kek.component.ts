@@ -21,6 +21,7 @@ export class KekComponent {
       invoke("on_workspace_remove").then(() => {});
       invoke("on_active_window_change");
       invoke("set_up_pipewire");
+      invoke("dbus");
     }, 1000);
   }
 }

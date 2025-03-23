@@ -2,12 +2,13 @@ mod commands;
 mod gtk_utils;
 mod hyprland_utils;
 mod pipewire_utils;
+mod dbus;
 
 use std::sync::Mutex;
 
 use commands::{
     close_popup, on_active_window_change, on_workspace_add, on_workspace_remove, open_popup,
-    set_default, set_volume, AppState,
+    set_default, set_volume, dbus, AppState,
 };
 use hyprland_utils::{get_current_workspaces, WorkspaceInfo};
 use pipewire_utils::set_up_pipewire;
@@ -104,6 +105,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             // open_window,
             // close_window,
+            dbus,
             open_popup,
             close_popup,
             set_volume,

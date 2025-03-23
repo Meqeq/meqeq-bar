@@ -3,10 +3,7 @@ use std::{
     process::{Command, Stdio},
 };
 
-use pipewire::{
-    context::Context,
-    main_loop::MainLoop,
-};
+use pipewire::{context::Context, main_loop::MainLoop};
 use serde::{Deserialize, Serialize};
 use tauri::{command, AppHandle, Emitter};
 
@@ -55,7 +52,7 @@ fn get_volume(id: u32) -> f32 {
 }
 
 pub fn set_volume(id: u32, volume: f32) {
-    let output = Command::new("wpctl")
+    Command::new("wpctl")
         .arg("set-volume")
         .arg(id.to_string())
         .arg(volume.to_string())
@@ -63,15 +60,13 @@ pub fn set_volume(id: u32, volume: f32) {
         .expect("Nie udało się uruchomić wpctl");
 }
 
-
 pub fn set_default(id: u32) {
-    let output = Command::new("wpctl")
+    Command::new("wpctl")
         .arg("set-default")
         .arg(id.to_string())
         .output()
         .expect("Nie udało się uruchomić wpctl");
 }
-
 
 fn get_pipewire(app: AppHandle) {
     let mut output = Command::new("zsh")
@@ -104,7 +99,7 @@ fn get_pipewire(app: AppHandle) {
                     app.emit("pipewire_node", serde_json::to_string(&node).unwrap())
                         .unwrap();
 
-                    println!("Otrzymano: {:?}", node);
+                    // println!("Otrzymano: {:?}", node);
                 } else if pw_object.type_ == "PipeWire:Interface:Metadata" {
                     let metadata: Metadata = serde_json::from_str(data.as_str()).unwrap();
 
@@ -114,7 +109,7 @@ fn get_pipewire(app: AppHandle) {
                     )
                     .unwrap();
 
-                    println!("Otrzymano: {:?}", metadata);
+                    // println!("Otrzymano: {:?}", metadata);
                 }
 
                 // Możesz dodać tutaj przetwarzanie lub inne operacje na danych.
@@ -132,7 +127,7 @@ pub async fn set_up_pipewire(app: AppHandle) -> Result<(), ()> {
     let mainloop = MainLoop::new(None).unwrap();
     let context = Context::new(&mainloop).unwrap();
     let core = context.connect(None).unwrap();
-    let registry = core.get_registry().unwrap();
+    let _registry = core.get_registry().unwrap();
 
     get_pipewire(app);
 

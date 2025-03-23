@@ -30,3 +30,8 @@ gtk-layer-shell = "0.8.1"
 glib = "0.20.9"
 hyprland = { git = "https://github.com/hyprland-community/hyprland-rs", branch = "master" }
 pipewire="0.8.0"
+dbus="0.9.0"
+zbus="5.5.0"
+event-listener="5.4.0"
+trpl="0.2.0"
+tokio="1.44.1"
