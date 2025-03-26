@@ -6,14 +6,24 @@ use hyprland::{
 };
 use serde::{Deserialize, Serialize};
 use std::{
-    borrow::Borrow, collections::HashMap, fmt::Debug, sync::{Arc, Mutex}
+    borrow::Borrow,
+    collections::HashMap,
+    fmt::Debug,
+    sync::{Arc, Mutex},
 };
 use std::{thread, time};
 use tauri::{command, AppHandle, Emitter, Manager};
 use trpl::StreamExt;
 use zbus::{fdo, message::Header, object_server::Interface, proxy, Connection};
 
-use crate::{dbus::{StatusNotifierWatcher}, gtk_utils::Popup, hyprland_utils::WorkspaceInfo, pipewire_utils};
+use crate::{
+    dbus::{
+        status_notifier_host::StatusNotifierHost, status_notifier_watcher::StatusNotifierWatcher,
+    },
+    gtk_utils::Popup,
+    hyprland_utils::WorkspaceInfo,
+    pipewire_utils,
+};
 use std::process;
 use zbus::interface;
 
@@ -211,17 +221,11 @@ pub async fn set_default(id: u32) {
     pipewire_utils::set_default(id);
 }
 
-struct StatusNotifierHost {}
-
-#[interface(name = "org.kde.StatusNotifierHost")]
-impl StatusNotifierHost {}
-
-
 #[command]
-pub async fn dbus() {
+pub async fn dbus(app: AppHandle) {
     // let clone2 = Connection::session().await.unwrap();
     // clone2
-    //     .request_name(format!("org.kde.StatusNotifierHost-{}", process::id()))
+    //     .request_name()
     //     .await
     //     .unwrap();
 
@@ -232,10 +236,11 @@ pub async fn dbus() {
     // trpl::join3( keke(&clone2), w, server2).await;
 
     //trpl::join(w, keke(&clone2)).await;
+    let notifier_host = Arc::new(StatusNotifierHost {});
 
-  
-    StatusNotifierWatcher::serve().await;
     
+    trpl::join(StatusNotifierWatcher::serve(), notifier_host.serve()).await;
+
     println!("KARWASZ TWARZ");
 
     let ten_millis = time::Duration::from_millis(1000000);

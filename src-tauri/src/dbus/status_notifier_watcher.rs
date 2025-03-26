@@ -5,18 +5,11 @@ use std::{
 
 use trpl::StreamExt;
 use zbus::{
-    fdo::DBusProxy,
     interface,
+    fdo::DBusProxy,
     message::Header,
-    object_server::SignalEmitter,
-    proxy, Connection,
+    object_server::SignalEmitter, Connection,
 };
-
-// #[proxy(interface = "org.kde.StatusNotifierItem")]
-// trait NotifierItem {
-//     #[zbus(property)]
-//     fn title(&self) -> fdo::Result<String>;
-// }
 
 pub struct StatusNotifierWatcher {
     tray_items: Arc<Mutex<HashMap<String, String>>>,
