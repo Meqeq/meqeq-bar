@@ -1,7 +1,13 @@
-use std::{collections::HashMap, process, sync::Arc};
+use std::{collections::HashMap, future::Future, process, sync::Arc};
 
-use tauri::AppHandle;
-use tokio::task;
+use image::ImageReader;
+use serde::{Deserialize, Serialize};
+use tauri::{AppHandle, Emitter};
+use tokio::{
+    fs::File,
+    io::{AsyncReadExt, BufReader},
+    task,
+};
 use trpl::{JoinHandle, StreamExt};
 use zbus::{fdo::DBusProxy, interface, message::Header, object_server::SignalEmitter, Connection};
 
@@ -12,7 +18,15 @@ use super::status_notifier_watcher::StatusNotifierWatcherProxy;
 struct TrayItem {
     // path: String,
     // service: String,
+    service: String,
     handle: JoinHandle<()>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct TrayItemEvent {
+    service: String,
+    title: String,
+    icon: Vec<u8>,
 }
 
 async fn kek(proxy: StatusNotifierItemProxy<'_>) {
@@ -21,19 +35,65 @@ async fn kek(proxy: StatusNotifierItemProxy<'_>) {
     println!("www: {:?} {:?}", title.unwrap(), icon_name.unwrap());
 }
 
-pub struct StatusNotifierHost {}
+async fn load_icon(icon_name: String, path: String) -> Vec<u8> {
+    let file = File::open(format!("{}/{}.png", path, icon_name))
+        .await
+        .unwrap();
+
+    let mut reader = BufReader::new(file);
+
+    let mut buf = Vec::new();
+    reader.read_to_end(&mut buf).await.unwrap();
+
+    buf
+}
+
+pub struct StatusNotifierHost {
+    connection: Connection,
+    app: AppHandle,
+}
 
 impl StatusNotifierHost {
-    async fn handle_new_item(&self, item: String, connection: Connection) {
+    pub async fn connect(app: AppHandle) -> Arc<Self> {
+        let connection = Connection::session().await.unwrap();
+
+        connection
+            .request_name(format!("org.kde.StatusNotifierHost-{}", process::id()))
+            .await
+            .unwrap();
+
+        let kek = Arc::new(StatusNotifierHost {
+            connection: connection.clone(),
+            app,
+        });
+
+        return kek;
+    }
+
+    async fn handle_new_item(&self, item: String) {
         let (service, path) = item.split_once("/").unwrap();
 
         let item_proxy = StatusNotifierItemProxy::new(
-            &connection,
+            &self.connection,
             service.to_string(),
             format!("/{}", path).to_string(),
         )
         .await
         .unwrap();
+
+        let to_emit = TrayItemEvent {
+            service: item,
+            title: item_proxy.title().await.unwrap(),
+            icon: load_icon(
+                item_proxy.icon_name().await.unwrap(),
+                item_proxy.icon_theme_path().await.unwrap(),
+            )
+            .await,
+        };
+
+        self.app
+            .emit("tray_item_add", serde_json::to_string(&to_emit).unwrap())
+            .unwrap();
 
         let mut stream = item_proxy.receive_new_title().await.unwrap();
 
@@ -45,14 +105,9 @@ impl StatusNotifierHost {
     }
 
     pub async fn serve(self: Arc<Self>) {
-        let connection = Connection::session().await.unwrap();
-
-        connection
-            .request_name(format!("org.kde.StatusNotifierHost-{}", process::id()))
+        let proxy = StatusNotifierWatcherProxy::new(&self.connection)
             .await
             .unwrap();
-
-        let proxy = StatusNotifierWatcherProxy::new(&connection).await.unwrap();
 
         let mut register_stream = proxy
             .receive_status_notifier_item_registered()
@@ -64,7 +119,7 @@ impl StatusNotifierHost {
             .await
             .unwrap();
 
-        let map: HashMap<String, TrayItem> = HashMap::new();
+        let mut map: HashMap<String, TrayItem> = HashMap::new();
 
         loop {
             tokio::select! {
@@ -73,17 +128,37 @@ impl StatusNotifierHost {
                     println!("REGISTER: {:?}", service);
 
                     let self_clone = Arc::clone(&self);
-                    let connection_clone = connection.clone();
+                    let service_clone = service.clone();
 
                     let tray_item = TrayItem {
+                        service: service_clone.clone(),
                         handle: tokio::spawn(async move {
-                         self_clone.handle_new_item(service, connection_clone).await
+                            self_clone.handle_new_item(service_clone).await
                         })
                     };
 
+                    map.insert(service, tray_item);
+
                 }
                 Some(message) = unregister_stream.next() => {
+                    let service = message.args().unwrap().message;
                     println!("UNREGISTER: {:?}", message.args().unwrap());
+
+                    let unregistered = map.remove(&service).unwrap();
+
+                    let to_emit = TrayItemEvent {
+                        service,
+                        title: String::new(),
+                        icon: Vec::new(),
+                    };
+
+                    self.app
+                    .emit("tray_item_remove", serde_json::to_string(&to_emit).unwrap())
+                    .unwrap();
+
+                    unregistered.handle.abort();
+
+                    // unregisterd.handle.abort.unwrap();
                 }
             }
         }

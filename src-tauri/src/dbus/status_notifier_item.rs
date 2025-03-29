@@ -54,6 +54,10 @@ pub trait StatusNotifierItem {
     #[zbus(property)]
     fn category(&self) -> zbus::Result<String>;
 
+    /// Category property
+    #[zbus(property)]
+    fn icon_theme_path(&self) -> zbus::Result<String>;
+
     /// IconPixmap property
     #[zbus(property)]
     fn icon_pixmap(&self) -> zbus::Result<(i32, i32, Vec<u8>)>;

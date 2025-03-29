@@ -236,7 +236,7 @@ pub async fn dbus(app: AppHandle) {
     // trpl::join3( keke(&clone2), w, server2).await;
 
     //trpl::join(w, keke(&clone2)).await;
-    let notifier_host = Arc::new(StatusNotifierHost {});
+    let notifier_host = StatusNotifierHost::connect(app).await;
 
     
     trpl::join(StatusNotifierWatcher::serve(), notifier_host.serve()).await;

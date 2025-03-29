@@ -47,6 +47,7 @@ pub fn run() {
                 popups.push(gtk_utils::create_popup_window(app, info));
             }
 
+
             // Let popup_window = tauri::WebviewWindowBuilder::new(
             //     app,
             //     "label",

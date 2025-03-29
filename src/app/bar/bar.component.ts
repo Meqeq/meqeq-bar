@@ -1,4 +1,4 @@
-import { DatePipe } from "@angular/common";
+import { DatePipe, JsonPipe } from "@angular/common";
 import { Component, input } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { invoke } from "@tauri-apps/api/core";
@@ -6,6 +6,7 @@ import { interval, map, startWith, tap } from "rxjs";
 import { SoundComponent } from "./sound/sound.component";
 
 import { fromTauriEvent } from "../common/tauri-utils";
+import { TrayComponent } from "./tray/tray.component";
 
 interface WorkspaceInfo {
   id: number;
@@ -16,7 +17,7 @@ interface WorkspaceInfo {
 @Component({
   selector: "app-bar",
   templateUrl: "./bar.component.html",
-  imports: [DatePipe, SoundComponent],
+  imports: [DatePipe, SoundComponent, TrayComponent, JsonPipe],
 })
 export class BarComponent {
   readonly monitor = input(0, {

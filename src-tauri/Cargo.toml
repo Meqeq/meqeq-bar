@@ -34,4 +34,6 @@ dbus="0.9.0"
 zbus="5.5.0"
 event-listener="5.4.0"
 trpl="0.2.0"
-tokio="1.44.1"
+tokio= { version = "1.44.1", features = ["full"] }
+image = "0.25.6"
+base64 = "0.21"
