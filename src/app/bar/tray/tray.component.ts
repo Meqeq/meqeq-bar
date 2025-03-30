@@ -1,8 +1,8 @@
+import { JsonPipe, NgOptimizedImage } from "@angular/common";
 import { Component } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
+import { map, merge, Observable, scan, tap } from "rxjs";
 import { fromTauriEvent } from "../../common/tauri-utils";
-import { map, Observable, merge, scan, tap } from "rxjs";
-import { JsonPipe, NgOptimizedImage } from "@angular/common";
 
 export interface TrayItemPayload {
   service: string;
@@ -17,34 +17,25 @@ export interface TrayItem {
 }
 
 @Component({
-  selector: 'app-tray',
-  templateUrl: './tray.component.html',
-  imports: [NgOptimizedImage, JsonPipe]
+  selector: "app-tray",
+  templateUrl: "./tray.component.html",
+  imports: [NgOptimizedImage, JsonPipe],
 })
 export class TrayComponent {
-
-
   readonly trayItems = toSignal(
-
-    merge(
-      this.getTrayItems('add'),
-      this.getTrayItems('remove'),
-    ).pipe(
+    merge(this.getTrayItems("add"), this.getTrayItems("remove")).pipe(
       scan((items, item) => {
-        if (item.type === 'add')
-          return [...items, item];
-        else
-          return items.filter(i => i.service !== item.service)
+        if (item.type === "add") return [...items, item];
+        else return items.filter((i) => i.service !== item.service);
+      }, [] as TrayItem[]),
+    ),
+  );
 
-      }, [] as TrayItem[])
-    )
-
-  )
-
-  private getTrayItems<T extends 'add' | 'remove'>(type: T): Observable<TrayItem & { type: T }> {
+  private getTrayItems<T extends "add" | "remove">(
+    type: T,
+  ): Observable<TrayItem & { type: T }> {
     return fromTauriEvent<TrayItemPayload>(`tray_item_${type}`).pipe(
-      map(event => {
-
+      map((event) => {
         const content = new Uint8Array(event.payload.icon);
 
         return {
@@ -52,12 +43,10 @@ export class TrayComponent {
           title: event.payload.title,
           service: event.payload.service,
           icon: URL.createObjectURL(
-            new Blob([content.buffer], { type: 'image/png' } /* (1) */)
-          )
+            new Blob([content.buffer], { type: "image/png" } /* (1) */),
+          ),
         };
-
-      })
-    )
+      }),
+    );
   }
-
 }

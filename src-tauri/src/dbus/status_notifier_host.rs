@@ -1,24 +1,20 @@
-use std::{collections::HashMap, future::Future, process, sync::Arc};
+use std::{collections::HashMap, process, sync::Arc};
 
-use image::ImageReader;
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Emitter};
 use tokio::{
     fs::File,
     io::{AsyncReadExt, BufReader},
-    task,
 };
 use trpl::{JoinHandle, StreamExt};
-use zbus::{fdo::DBusProxy, interface, message::Header, object_server::SignalEmitter, Connection};
+use zbus::{interface, Connection};
 
 use crate::dbus::status_notifier_item::StatusNotifierItemProxy;
 
 use super::status_notifier_watcher::StatusNotifierWatcherProxy;
 
 struct TrayItem {
-    // path: String,
     // service: String,
-    service: String,
     handle: JoinHandle<()>,
 }
 
@@ -27,12 +23,6 @@ struct TrayItemEvent {
     service: String,
     title: String,
     icon: Vec<u8>,
-}
-
-async fn kek(proxy: StatusNotifierItemProxy<'_>) {
-    let (title, icon_name) = tokio::join!(proxy.title(), proxy.icon_name());
-
-    println!("www: {:?} {:?}", title.unwrap(), icon_name.unwrap());
 }
 
 async fn load_icon(icon_name: String, path: String) -> Vec<u8> {
@@ -131,7 +121,7 @@ impl StatusNotifierHost {
                     let service_clone = service.clone();
 
                     let tray_item = TrayItem {
-                        service: service_clone.clone(),
+                        // service: service_clone.clone(),
                         handle: tokio::spawn(async move {
                             self_clone.handle_new_item(service_clone).await
                         })
