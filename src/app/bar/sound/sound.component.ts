@@ -9,7 +9,7 @@ import { DecimalPipe } from "@angular/common";
 @Component({
   selector: "app-sound",
   templateUrl: "./sound.component.html",
-  imports: [DecimalPipe]
+  imports: [DecimalPipe],
 })
 export class SoundComponent {
   readonly defaults = toSignal(

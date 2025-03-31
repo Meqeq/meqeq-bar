@@ -22,26 +22,22 @@
     <span class="text-xs text-gray-200"> {{ activeWindow().title }}</span>
   </div>
 
-
   <div class="flex gap-2">
-  @if(monitor() === 0) {
-    <app-sound></app-sound>
+    @if (monitor() === 0) {
+      <app-sound></app-sound>
 
-    <app-tray></app-tray>
-    
-    <div
-      class="flex gap-2 items-center bg-gray-800 text-white rounded-box px-3 py-1 text-center cursor-pointer hover:bg-gray-700"
-      (click)="openCalendar()"
-    >
-      <span class="text-md font-bold">{{ time() | date: "HH:mm" }}</span>
+      <app-tray></app-tray>
 
-      <span class="text-xs text-gray-200">{{
-        time() | date: "dd MMM yyyy"
-      }}</span>
-    </div>
-  }
-  
-  </div>    
-  
+      <div
+        class="flex gap-2 items-center bg-gray-800 text-white rounded-box px-3 py-1 text-center cursor-pointer hover:bg-gray-700"
+        (click)="openCalendar()"
+      >
+        <span class="text-md font-bold">{{ time() | date: "HH:mm" }}</span>
 
+        <span class="text-xs text-gray-200">{{
+          time() | date: "dd MMM yyyy"
+        }}</span>
+      </div>
+    }
+  </div>
 </main>
