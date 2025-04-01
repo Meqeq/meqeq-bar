@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "scripts": {
     "ng": "ng",
-    "start": "tauri dev",
+    "start": "__NV_DISABLE_EXPLICIT_SYNC=1 tauri dev",
     "build": "ng build",
     "serve": "ng serve",
     "watch": "ng build --watch --configuration development",

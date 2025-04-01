@@ -62,8 +62,8 @@ pub fn display_status_bar(app: &tauri::App, info: &MonitorInfo) {
     gtk_window.set_layer(gtk_layer_shell::Layer::Bottom);
     gtk_window.set_anchor(gtk_layer_shell::Edge::Bottom, true);
 
-    gtk_window.set_exclusive_zone(48);
-    gtk_window.set_height_request(48);
+    gtk_window.set_exclusive_zone(40);
+    gtk_window.set_height_request(40);
 
     gtk_window.set_width_request(info.width);
     gtk_window.set_monitor(&info.monitor);

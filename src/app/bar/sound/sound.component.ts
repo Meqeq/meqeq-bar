@@ -1,15 +1,16 @@
+import { DecimalPipe } from "@angular/common";
 import { Component, computed, effect } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
-import { fromTauriEvent } from "../../common/tauri-utils";
-import { scan } from "rxjs";
 import { invoke } from "@tauri-apps/api/core";
+import { scan } from "rxjs";
+import { PillComponent } from "../../common/pill/pill.component";
+import { fromTauriEvent } from "../../common/tauri-utils";
 import { PipeWireMetadata, PipeWireNode } from "../../common/types";
-import { DecimalPipe } from "@angular/common";
 
 @Component({
   selector: "app-sound",
   templateUrl: "./sound.component.html",
-  imports: [DecimalPipe],
+  imports: [DecimalPipe, PillComponent],
 })
 export class SoundComponent {
   readonly defaults = toSignal(

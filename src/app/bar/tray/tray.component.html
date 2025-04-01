@@ -1,5 +1,9 @@
-<div class="flex">
-  @for (item of trayItems(); track $index) {
-    <img [src]="item.icon" [width]="24" [height]="24" />
-  }
-</div>
+@if (trayItems()?.length) {
+  <app-pill>
+    <div class="flex -m-1">
+      @for (item of trayItems(); track $index) {
+        <img [src]="item.icon" [width]="20" [height]="20" />
+      }
+    </div>
+  </app-pill>
+}

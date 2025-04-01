@@ -1,0 +1,5 @@
+<app-pill (click)="openCalendar()">
+  <span class="text-md font-bold">{{ time() | date: "HH:mm" }}</span>
+
+  <span class="text-xs text-gray-200">{{ time() | date: "dd MMM yyyy" }}</span>
+</app-pill>

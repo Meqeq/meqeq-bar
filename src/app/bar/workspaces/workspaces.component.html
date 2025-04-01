@@ -1,0 +1,15 @@
+<div class="flex text-white items-center gap-1 py-1">
+  @for (workspace of workspaces(); track workspace.id) {
+    <div
+      class="rounded-full bg-gray-800 text-center font-bold workspace shadow-lg"
+      [class.cursor-pointer]="workspace.id !== activeWorkspace()"
+      [class.hover:bg-gray-900]="workspace.id !== activeWorkspace()"
+      [class.active]="workspace.id === activeWorkspace()"
+      (click)="
+        workspace.id !== activeWorkspace() && setCurrentWorkspace(workspace.id)
+      "
+    >
+      {{ workspace.id }}
+    </div>
+  }
+</div>

@@ -1,26 +1,7 @@
-<main class="flex justify-between p-2 h-12">
-  <div class="flex text-white items-center gap-1">
-    @for (workspace of workspaces(); track workspace.id) {
-      <div
-        class="rounded-full bg-gray-800 leading-7 w-7 h-7 text-center"
-        [class.cursor-pointer]="workspace.id !== activeWorkspace()"
-        [class.bg-red-400]="workspace.id === activeWorkspace()"
-        (click)="
-          workspace.id !== activeWorkspace() &&
-            setCurrentWorkspace(workspace.id)
-        "
-      >
-        {{ workspace.id }}
-      </div>
-    }
-  </div>
+<main class="flex justify-between px-3">
+  <app-workspaces [monitor]="monitor()"></app-workspaces>
 
-  <div
-    class="flex gap-2 items-center bg-gray-800 text-white rounded-box px-3 py-2 text-center"
-  >
-    <span class="text-md font-bold">{{ activeWindow().class }}</span>
-    <span class="text-xs text-gray-200"> {{ activeWindow().title }}</span>
-  </div>
+  <app-window-name></app-window-name>
 
   <div class="flex gap-2">
     @if (monitor() === 0) {
@@ -28,16 +9,7 @@
 
       <app-tray></app-tray>
 
-      <div
-        class="flex gap-2 items-center bg-gray-800 text-white rounded-box px-3 py-1 text-center cursor-pointer hover:bg-gray-700"
-        (click)="openCalendar()"
-      >
-        <span class="text-md font-bold">{{ time() | date: "HH:mm" }}</span>
-
-        <span class="text-xs text-gray-200">{{
-          time() | date: "dd MMM yyyy"
-        }}</span>
-      </div>
+      <app-clock></app-clock>
     }
   </div>
 </main>
