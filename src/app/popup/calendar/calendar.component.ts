@@ -43,14 +43,8 @@ export class CalendarComponent {
   }
 
   ngOnInit(): void {
-    setTimeout(() => {
-      this.datePicker().nativeElement.click();
-    });
-  }
-
-  close(): void {
-    invoke("close_window").then(() => {
-      console.log("DAWDAWD");
-    });
+    // setTimeout(() => {
+    //   this.datePicker().nativeElement.click();
+    // });
   }
 }

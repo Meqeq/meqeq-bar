@@ -1,7 +1,6 @@
 import { DatePipe } from "@angular/common";
 import { Component } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
-import { invoke } from "@tauri-apps/api/core";
 import { interval, map, startWith } from "rxjs";
 import { PillComponent } from "../../common/pill/pill.component";
 
@@ -17,10 +16,4 @@ export class ClockComponent {
       map(() => new Date()),
     ),
   );
-
-  openCalendar(): void {
-    invoke("open_popup", { popup: "calendar" }).then(() => {
-      console.log("DAWDAWD");
-    });
-  }
 }

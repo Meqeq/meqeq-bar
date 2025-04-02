@@ -1,15 +1,26 @@
-<main class="flex justify-between px-3">
-  <app-workspaces [monitor]="monitor()"></app-workspaces>
-
-  <app-window-name></app-window-name>
-
-  <div class="flex gap-2">
-    @if (monitor() === 0) {
-      <app-sound></app-sound>
-
-      <app-tray></app-tray>
-
-      <app-clock></app-clock>
-    }
+<div
+  class="flex flex-col justify-end items-end h-screen p-3 relative"
+  (click)="barService.closePopup()"
+>
+  <div class="py-3">
+    <router-outlet></router-outlet>
   </div>
-</main>
+
+  <main class="w-full flex justify-between items-center">
+    <app-workspaces [monitor]="barService.monitor()"></app-workspaces>
+
+    <app-window-name></app-window-name>
+
+    <div class="flex gap-2">
+      @if (barService.monitor() === 0) {
+        <app-sound (click)="barService.openPopup($event, 'sound')"></app-sound>
+
+        <app-tray></app-tray>
+
+        <app-clock
+          (click)="barService.openPopup($event, 'calendar')"
+        ></app-clock>
+      }
+    </div>
+  </main>
+</div>

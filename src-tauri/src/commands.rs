@@ -1,4 +1,5 @@
-use gtk::prelude::WidgetExt;
+use gtk::{prelude::WidgetExt, ApplicationWindow};
+use gtk_layer_shell::{Layer, LayerShell};
 use hyprland::{
     data::{Client, Workspace},
     event_listener::EventListener,
@@ -7,6 +8,7 @@ use hyprland::{
 use serde::{Deserialize, Serialize};
 use std::{fmt::Debug, sync::Mutex};
 use tauri::{command, AppHandle, Emitter, Manager};
+use tokio::join;
 
 use crate::{
     dbus::{
@@ -14,7 +16,7 @@ use crate::{
     },
     gtk_utils::Popup,
     hyprland_utils::WorkspaceInfo,
-    pipewire_utils,
+    pipewire_utils::{self, set_up_pipewire},
 };
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -25,11 +27,20 @@ pub struct ActiveWindow {
 
 #[derive(Debug)]
 pub struct AppState {
-    pub popups: Vec<Popup>,
+    pub bars: Vec<ApplicationWindow>,
     pub workspaces: Vec<WorkspaceInfo>,
+    initialized: bool,
 }
 
 impl AppState {
+    pub fn new(bars: Vec<ApplicationWindow>, workspaces: Vec<WorkspaceInfo>) -> Self {
+        Self {
+            bars,
+            workspaces,
+            initialized: false,
+        }
+    }
+
     fn add_workspace(&mut self, workspace: WorkspaceInfo) {
         self.workspaces.push(workspace);
     }
@@ -37,10 +48,45 @@ impl AppState {
     fn remove_workspace(&mut self, id: i32) {
         self.workspaces.retain(|workspace| workspace.id != id);
     }
+
+    fn is_initialized(&self) -> bool {
+        self.initialized
+    }
+
+    fn initialize(&mut self) {
+        self.initialized = true;
+    }
 }
 
 unsafe impl Send for AppState {}
 unsafe impl Sync for AppState {}
+
+#[command]
+pub async fn initialize(app: AppHandle) {
+    // invoke("on_workspace_add").then(() => {});
+    //  invoke("on_workspace_remove").then(() => {});
+    //  invoke("on_active_window_change");
+    //  invoke("set_up_pipewire");
+    //  invoke("dbus");
+    {
+        let state = app.state::<Mutex<AppState>>();
+        let mut state = state.lock().unwrap();
+
+        if state.is_initialized() {
+            return;
+        }
+
+        state.initialize();
+    }
+
+    let _ = join!(
+        tokio::spawn(on_active_window_change(app.clone())),
+        tokio::spawn(on_workspace_remove(app.clone())),
+        tokio::spawn(on_active_window_change(app.clone())),
+        tokio::spawn(set_up_pipewire(app.clone())),
+        tokio::spawn(dbus(app.clone())),
+    );
+}
 
 #[command]
 pub async fn on_workspace_add(app: AppHandle) {
@@ -155,50 +201,20 @@ pub struct ActivePopup {
 }
 
 #[command]
-pub async fn open_popup(app: AppHandle, popup: String) {
-    let state = app.state::<Mutex<AppState>>();
-    let state = state.lock().unwrap();
+pub async fn set_layer(app: AppHandle, bar: usize, layer: String) {
+    let app_clone = app.clone();
+    app.run_on_main_thread(move || {
+        let state = app_clone.state::<Mutex<AppState>>();
+        let state = state.lock().unwrap();
+        let window = state.bars.get(bar).unwrap();
 
-    println!("{:?}", popup);
-
-    let url = state.popups[0].webview_window.url().unwrap();
-
-    println!("{:?}", url);
-
-    let url = state.popups[0].webview_window.url().unwrap();
-
-    // state.popups[0].webview_window.open_devtools();
-    println!("{:?}", url);
-
-    app.emit(
-        "active_popup",
-        serde_json::to_string(&ActivePopup {
-            name: popup,
-            monitor: 0,
-        })
-        .unwrap(),
-    )
+        if layer == "top" {
+            window.set_layer(Layer::Top);
+        } else {
+            window.set_layer(Layer::Bottom);
+        }
+    })
     .unwrap();
-
-    state.popups[0].window.show_all();
-}
-
-#[command]
-pub async fn close_popup(app: AppHandle) {
-    let state = app.state::<Mutex<AppState>>();
-    let state = state.lock().unwrap();
-
-    app.emit(
-        "active_popup",
-        serde_json::to_string(&ActivePopup {
-            name: "".to_string(),
-            monitor: 0,
-        })
-        .unwrap(),
-    )
-    .unwrap();
-
-    state.popups[0].window.hide();
 }
 
 #[command]

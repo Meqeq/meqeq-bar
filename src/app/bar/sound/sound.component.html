@@ -1,5 +1,5 @@
-<app-pill (click)="open()">
-  <span class="text-md font-bold"
-    >{{ defaultVolume() | number: "1.0-0" }} %</span
+<app-pill>
+  <span class="text-lg font-bold"
+    >{{ soundService.defaultVolume() | number: "1.0-0" }} %</span
   >
 </app-pill>

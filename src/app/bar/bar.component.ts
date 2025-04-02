@@ -1,11 +1,9 @@
 import { DatePipe, JsonPipe } from "@angular/common";
-import { Component, input } from "@angular/core";
-import { toSignal } from "@angular/core/rxjs-interop";
-import { invoke } from "@tauri-apps/api/core";
-import { interval, map, startWith, tap } from "rxjs";
+import { Component, inject } from "@angular/core";
 import { SoundComponent } from "./sound/sound.component";
 
-import { fromTauriEvent } from "../common/tauri-utils";
+import { RouterOutlet } from "@angular/router";
+import { BarService } from "./bar.service";
 import { ClockComponent } from "./clock/clock.component";
 import { TrayComponent } from "./tray/tray.component";
 import { WindowNameComponent } from "./window-name/window-name.component";
@@ -14,8 +12,10 @@ import { WorkspacesComponent } from "./workspaces/workspaces.component";
 @Component({
   selector: "app-bar",
   templateUrl: "./bar.component.html",
+  providers: [BarService],
   imports: [
     DatePipe,
+    RouterOutlet,
     SoundComponent,
     TrayComponent,
     ClockComponent,
@@ -25,7 +25,9 @@ import { WorkspacesComponent } from "./workspaces/workspaces.component";
   ],
 })
 export class BarComponent {
-  readonly monitor = input(0, {
-    transform: (v: any) => Number.parseInt(v),
-  });
+  readonly barService = inject(BarService);
+
+  ngOnInit(): void {
+    this.barService.init();
+  }
 }

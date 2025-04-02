@@ -1,23 +1,13 @@
-import { computed, effect, Injectable } from "@angular/core";
-import { fromTauriEvent } from "../common/tauri-utils";
-import { map, scan } from "rxjs";
-import { PipeWireMetadata, PipeWireNode } from "../common/types";
+import { computed, Injectable } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
-
-export interface ActivePopup {
-  name: string;
-  monitor: number;
-}
+import { scan } from "rxjs";
+import { fromTauriEvent } from "./tauri-utils";
+import { PipeWireMetadata, PipeWireNode } from "./types";
 
 @Injectable({
   providedIn: "root",
 })
-export class PopupService {
-  readonly activePopup = toSignal(
-    fromTauriEvent<ActivePopup>("active_popup").pipe(map((e) => e.payload)),
-    { initialValue: { name: "", monitor: 0 } },
-  );
-
+export class SoundService {
   readonly defaults = toSignal(
     fromTauriEvent<PipeWireMetadata>("pipewire_metadata"),
   );
@@ -65,14 +55,4 @@ export class PopupService {
   readonly defaultVolume = computed(() => {
     return (this.defaultSink()?.volume ?? 0) * 100;
   });
-
-  constructor() {
-    effect(() => {
-      console.log(this.defaults());
-    });
-
-    effect(() => {
-      console.log(this.nodes());
-    });
-  }
 }

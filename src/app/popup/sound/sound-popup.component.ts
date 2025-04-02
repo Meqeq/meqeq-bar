@@ -1,10 +1,10 @@
-import { Component, computed, effect, inject } from "@angular/core";
+import { Component, computed, inject } from "@angular/core";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { invoke } from "@tauri-apps/api/core";
 
 import { JsonPipe } from "@angular/common";
-import { PopupService } from "../popup.service";
-import { PipeWireMetadata, PipeWireNode } from "../../common/types";
+import { SoundService } from "../../common/sound.service";
+import { PipeWireNode } from "../../common/types";
 import { SoundNodeComponent } from "./node/sound-node.component";
 
 @Component({
@@ -13,13 +13,13 @@ import { SoundNodeComponent } from "./node/sound-node.component";
   imports: [JsonPipe, FormsModule, ReactiveFormsModule, SoundNodeComponent],
 })
 export class SoundPopupComponent {
-  readonly service = inject(PopupService);
+  readonly soundService = inject(SoundService);
 
   readonly data = computed(() => {
     const sinks: PipeWireNode[] = [];
     const sources: PipeWireNode[] = [];
 
-    this.service.nodes()?.nodes.forEach((node) => {
+    this.soundService.nodes()?.nodes.forEach((node) => {
       switch (node.class) {
         case "Audio/Sink":
           sinks.push(node);

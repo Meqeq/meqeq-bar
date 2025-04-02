@@ -129,6 +129,8 @@ pub async fn set_up_pipewire(app: AppHandle) -> Result<(), ()> {
     let core = context.connect(None).unwrap();
     let _registry = core.get_registry().unwrap();
 
+    println!("PIPEWIRE INIT");
+
     get_pipewire(app);
 
     Ok(())

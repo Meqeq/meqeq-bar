@@ -1,18 +1,10 @@
-import { CommonModule } from "@angular/common";
 import { Component } from "@angular/core";
+
 import { RouterOutlet } from "@angular/router";
 
 @Component({
   selector: "app-root",
-  standalone: true,
-  imports: [CommonModule, RouterOutlet],
   templateUrl: "./app.component.html",
-  styleUrl: "./app.component.scss",
+  imports: [RouterOutlet],
 })
-export class AppComponent {
-  greetingMessage = "";
-
-  ngOnInit(): void {
-    console.log("AAAAA", new Date().toISOString());
-  }
-}
+export class AppComponent { }

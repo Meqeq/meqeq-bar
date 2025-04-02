@@ -7,27 +7,50 @@ export const routes: Routes = [
     component: AppComponent,
     children: [
       {
-        path: "popup/calendar",
-        loadComponent: () =>
-          import("./popup/calendar/calendar.component").then(
-            (c) => c.CalendarComponent,
-          ),
-      },
-      {
-        path: "popup/:monitor/:type",
-        loadComponent: () =>
-          import("./popup/popup.component").then((c) => c.PopupComponent),
-      },
-      {
-        path: ":monitor",
+        path: "bar/:monitor",
         loadComponent: () =>
           import("./bar/bar.component").then((c) => c.BarComponent),
-      },
-      {
-        path: "",
-        loadComponent: () =>
-          import("./kek/kek.component").then((c) => c.KekComponent),
+        children: [
+          {
+            path: "calendar",
+            loadComponent: () =>
+              import("./popup/calendar/calendar.component").then(
+                (c) => c.CalendarComponent,
+              ),
+          },
+          {
+            path: "sound",
+            loadComponent: () =>
+              import("./popup/sound/sound-popup.component").then(
+                (c) => c.SoundPopupComponent,
+              ),
+          },
+        ],
       },
     ],
+    // children: [
+    //   {
+    //     path: "popup/calendar",
+    //     loadComponent: () =>
+    //       import("./popup/calendar/calendar.component").then(
+    //         (c) => c.CalendarComponent,
+    //       ),
+    //   },
+    //   {
+    //     path: "popup/:monitor/:type",
+    //     loadComponent: () =>
+    //       import("./popup/popup.component").then((c) => c.PopupComponent),
+    //   },
+    //   {
+    //     path: ":monitor",
+    //     loadComponent: () =>
+    //       import("./bar/bar.component").then((c) => c.BarComponent),
+    //   },
+    //   {
+    //     path: "",
+    //     loadComponent: () =>
+    //       import("./kek/kek.component").then((c) => c.KekComponent),
+    //   },
+    // ],
   },
 ];

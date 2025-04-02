@@ -1,21 +1,21 @@
-<div class="bg-base-100 text-base-content m-4 p-6 w-164 rounded-box">
-  <div class="flex mb-2">
+<div class="w-164 bg-base-100 text-base-content p-4 rounded-2xl">
+  <div class="flex">
     <p class="text-xl font-bold">Volume</p>
   </div>
 
   @for (sink of data().sinks; track sink.id) {
     <app-sound-node
       [node]="sink"
-      [active]="sink.name === service.defaultSink()?.name"
+      [active]="sink.name === soundService.defaultSink()?.name"
     ></app-sound-node>
   }
 
-  <hr class="text-base-300 my-4" />
+  <hr class="text-base-300" />
 
   @for (source of data().sources; track source.id) {
     <app-sound-node
       [node]="source"
-      [active]="source.name === service.defaults()?.payload?.defaultSource"
+      [active]="source.name === soundService.defaults()?.payload?.defaultSource"
     ></app-sound-node>
   }
 </div>
