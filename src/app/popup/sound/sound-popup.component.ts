@@ -2,7 +2,6 @@ import { Component, computed, inject } from "@angular/core";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { invoke } from "@tauri-apps/api/core";
 
-import { JsonPipe } from "@angular/common";
 import { SoundService } from "../../common/sound.service";
 import { PipeWireNode } from "../../common/types";
 import { SoundNodeComponent } from "./node/sound-node.component";
@@ -10,7 +9,7 @@ import { SoundNodeComponent } from "./node/sound-node.component";
 @Component({
   selector: "app-sound-popup",
   templateUrl: "./sound-popup.component.html",
-  imports: [JsonPipe, FormsModule, ReactiveFormsModule, SoundNodeComponent],
+  imports: [FormsModule, ReactiveFormsModule, SoundNodeComponent],
 })
 export class SoundPopupComponent {
   readonly soundService = inject(SoundService);
@@ -37,12 +36,9 @@ export class SoundPopupComponent {
   });
 
   setVolume(id: number, value: number): void {
-    console.log(id, value);
     invoke("set_volume", {
       id,
       value,
-    }).then(() => {
-      console.log("DAWDAWD");
     });
   }
 }

@@ -1,4 +1,3 @@
-import { DatePipe, JsonPipe } from "@angular/common";
 import { Component, inject } from "@angular/core";
 import { SoundComponent } from "./sound/sound.component";
 
@@ -14,14 +13,12 @@ import { WorkspacesComponent } from "./workspaces/workspaces.component";
   templateUrl: "./bar.component.html",
   providers: [BarService],
   imports: [
-    DatePipe,
     RouterOutlet,
     SoundComponent,
     TrayComponent,
     ClockComponent,
     WindowNameComponent,
     WorkspacesComponent,
-    JsonPipe,
   ],
 })
 export class BarComponent {

@@ -1,4 +1,3 @@
-use gtk::{prelude::WidgetExt, ApplicationWindow};
 use gtk_layer_shell::{Layer, LayerShell};
 use hyprland::{
     data::{Client, Workspace},
@@ -11,12 +10,11 @@ use tauri::{command, AppHandle, Emitter, Manager};
 use tokio::join;
 
 use crate::{
+    app_state::AppState,
     dbus::{
         status_notifier_host::StatusNotifierHost, status_notifier_watcher::StatusNotifierWatcher,
     },
-    gtk_utils::Popup,
-    hyprland_utils::WorkspaceInfo,
-    pipewire_utils::{self, set_up_pipewire},
+    utils::{self, hyprland::WorkspaceInfo, pipewire::set_up_pipewire},
 };
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -25,49 +23,8 @@ pub struct ActiveWindow {
     pub title: String,
 }
 
-#[derive(Debug)]
-pub struct AppState {
-    pub bars: Vec<ApplicationWindow>,
-    pub workspaces: Vec<WorkspaceInfo>,
-    initialized: bool,
-}
-
-impl AppState {
-    pub fn new(bars: Vec<ApplicationWindow>, workspaces: Vec<WorkspaceInfo>) -> Self {
-        Self {
-            bars,
-            workspaces,
-            initialized: false,
-        }
-    }
-
-    fn add_workspace(&mut self, workspace: WorkspaceInfo) {
-        self.workspaces.push(workspace);
-    }
-
-    fn remove_workspace(&mut self, id: i32) {
-        self.workspaces.retain(|workspace| workspace.id != id);
-    }
-
-    fn is_initialized(&self) -> bool {
-        self.initialized
-    }
-
-    fn initialize(&mut self) {
-        self.initialized = true;
-    }
-}
-
-unsafe impl Send for AppState {}
-unsafe impl Sync for AppState {}
-
 #[command]
 pub async fn initialize(app: AppHandle) {
-    // invoke("on_workspace_add").then(() => {});
-    //  invoke("on_workspace_remove").then(() => {});
-    //  invoke("on_active_window_change");
-    //  invoke("set_up_pipewire");
-    //  invoke("dbus");
     {
         let state = app.state::<Mutex<AppState>>();
         let mut state = state.lock().unwrap();
@@ -81,8 +38,8 @@ pub async fn initialize(app: AppHandle) {
 
     let _ = join!(
         tokio::spawn(on_active_window_change(app.clone())),
+        tokio::spawn(on_workspace_add(app.clone())),
         tokio::spawn(on_workspace_remove(app.clone())),
-        tokio::spawn(on_active_window_change(app.clone())),
         tokio::spawn(set_up_pipewire(app.clone())),
         tokio::spawn(dbus(app.clone())),
     );
@@ -219,17 +176,22 @@ pub async fn set_layer(app: AppHandle, bar: usize, layer: String) {
 
 #[command]
 pub async fn set_volume(id: u32, volume: f32) {
-    pipewire_utils::set_volume(id, volume);
+    utils::pipewire::set_volume(id, volume);
 }
 
 #[command]
 pub async fn set_default(id: u32) {
-    pipewire_utils::set_default(id);
+    utils::pipewire::set_default(id);
+}
+
+#[tauri::command]
+pub fn set_current_workspace(id: i32, app: AppHandle) {
+    utils::hyprland::set_current_workspace(id, app);
 }
 
 #[command]
 pub async fn dbus(app: AppHandle) {
     let notifier_host = StatusNotifierHost::connect(app).await;
 
-    trpl::join(StatusNotifierWatcher::serve(), notifier_host.serve()).await;
+    join!(StatusNotifierWatcher::serve(), notifier_host.serve());
 }

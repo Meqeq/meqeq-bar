@@ -44,7 +44,7 @@ fn get_volume(id: u32) -> f32 {
         .expect("Nie udało się uruchomić wpctl");
 
     let stdout = String::from_utf8_lossy(&output.stdout);
-    // Zakładamy, że wynik wygląda mniej więcej tak: "Volume: 0.45"
+
     match stdout.strip_prefix("Volume: ") {
         Some(res) => res.trim().parse::<f32>().unwrap(),
         None => 0.0,
@@ -82,13 +82,9 @@ fn get_pipewire(app: AppHandle) {
         .expect("Nie udało się przekierować stdout");
     let reader = BufReader::new(stdout);
 
-    println!("DUPSKO");
-
-    // Odczytujemy dane linia po linii
     for line in reader.lines() {
         match line {
             Ok(data) => {
-                // println!("OOOOOOOO: {:?}", data);
                 let pw_object: PipeWireObject = serde_json::from_str(data.as_str()).unwrap();
 
                 if pw_object.type_ == "PipeWire:Interface:Node" {
@@ -98,8 +94,6 @@ fn get_pipewire(app: AppHandle) {
 
                     app.emit("pipewire_node", serde_json::to_string(&node).unwrap())
                         .unwrap();
-
-                    // println!("Otrzymano: {:?}", node);
                 } else if pw_object.type_ == "PipeWire:Interface:Metadata" {
                     let metadata: Metadata = serde_json::from_str(data.as_str()).unwrap();
 
@@ -108,11 +102,7 @@ fn get_pipewire(app: AppHandle) {
                         serde_json::to_string(&metadata).unwrap(),
                     )
                     .unwrap();
-
-                    // println!("Otrzymano: {:?}", metadata);
                 }
-
-                // Możesz dodać tutaj przetwarzanie lub inne operacje na danych.
             }
             Err(e) => {
                 eprintln!("Błąd odczytu: {}", e);

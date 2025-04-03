@@ -8,7 +8,7 @@ use hyprland::{
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Manager};
 
-use crate::commands::AppState;
+use crate::app_state::AppState;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct WorkspaceInfo {
@@ -18,7 +18,6 @@ pub struct WorkspaceInfo {
     pub monitor_name: String,
     pub last_window: Address,
 }
-
 
 pub fn get_current_workspaces() -> Vec<WorkspaceInfo> {
     // let workspaces = Workspaces::get().unwrap();
@@ -39,7 +38,6 @@ pub fn get_current_workspaces() -> Vec<WorkspaceInfo> {
 }
 
 pub fn set_current_workspace(id: i32, app: AppHandle) {
-
     match Dispatch::call(hyprland::dispatch::DispatchType::Workspace(
         hyprland::dispatch::WorkspaceIdentifierWithSpecial::Id(id),
     )) {

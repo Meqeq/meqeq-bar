@@ -3,13 +3,8 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use trpl::StreamExt;
-use zbus::{
-    interface,
-    fdo::DBusProxy,
-    message::Header,
-    object_server::SignalEmitter, Connection,
-};
+use tokio_stream::StreamExt;
+use zbus::{fdo::DBusProxy, interface, message::Header, object_server::SignalEmitter, Connection};
 
 pub struct StatusNotifierWatcher {
     tray_items: Arc<Mutex<HashMap<String, String>>>,
@@ -121,4 +116,3 @@ impl StatusNotifierWatcher {
         proxy.init().await.unwrap();
     }
 }
-

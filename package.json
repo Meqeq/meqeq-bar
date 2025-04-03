@@ -4,10 +4,11 @@
   "scripts": {
     "ng": "ng",
     "start": "__NV_DISABLE_EXPLICIT_SYNC=1 tauri dev",
-    "build": "ng build",
+    "build": "tauri build",
+    "build:angular": "ng build",
+    "build:arch": "cd src-tauri/target/release/bundle/deb && debtap meqeq-bar_0.1.0_amd64.deb",
     "serve": "ng serve",
-    "watch": "ng build --watch --configuration development",
-    "tauri": "tauri"
+    "watch": "ng build --watch --configuration development"
   },
   "private": true,
   "dependencies": {

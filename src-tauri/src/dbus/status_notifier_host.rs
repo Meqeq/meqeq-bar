@@ -5,8 +5,9 @@ use tauri::{AppHandle, Emitter};
 use tokio::{
     fs::File,
     io::{AsyncReadExt, BufReader},
+    task::JoinHandle,
 };
-use trpl::{JoinHandle, StreamExt};
+use tokio_stream::StreamExt;
 use zbus::{interface, Connection};
 
 use crate::dbus::status_notifier_item::StatusNotifierItemProxy;
@@ -147,8 +148,6 @@ impl StatusNotifierHost {
                     .unwrap();
 
                     unregistered.handle.abort();
-
-                    // unregisterd.handle.abort.unwrap();
                 }
             }
         }
@@ -157,55 +156,3 @@ impl StatusNotifierHost {
 
 #[interface(name = "org.kde.StatusNotifierHost")]
 impl StatusNotifierHost {}
-
-// let mut stream = proxy
-//     .receive_status_notifier_item_registered()
-//     .await
-//     .unwrap();
-
-// while let Some(msg) = stream.next().await {
-//     let args = msg.args().unwrap();
-
-//     self.handle_new_item().await;
-
-//     // let aa = task::spawn(self.handle_new_item());
-
-//     // let (service, path) = args.message.split_once("/").unwrap();
-
-//     // let item_proxy = StatusNotifierItemProxy::new(
-//     //     &connection,
-//     //     service.to_string(),
-//     //     format!("/{}", path).to_string(),
-//     // )
-//     // .await
-//     // .unwrap();
-//     // // let kek = item_proxy.icon_pixmap().await.unwrap();
-
-//     // let aa = task::spawn(kek(item_proxy));
-// }
-
-// let proxy = StatusNotifierWatcherProxy::new(&connection).await.unwrap();
-
-// proxy.init().await.unwrap();
-
-// let connection = zbus::connection::Builder::session()
-//   .unwrap()
-//   .name()
-//   .unwrap()
-//   .serve_at("/StatusNotifierHost", self)
-//   .unwrap()
-//   .build()
-//   .await
-//   .unwrap();
-
-// async fn handle_new_item(&self, connection: Connection, item: String) {
-//         let (service, path) = item.split_once("/").unwrap();
-
-//         let item_proxy = StatusNotifierItemProxy::new(
-//             &connection,
-//             service.to_string(),
-//             format!("/{}", path).to_string(),
-//         )
-//         .await
-//         .unwrap();
-//     }

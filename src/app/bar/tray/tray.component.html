@@ -1,8 +1,8 @@
 @if (trayItems()?.length) {
   <app-pill>
-    <div class="flex -m-1">
+    <div class="flex">
       @for (item of trayItems(); track $index) {
-        <img [src]="item.icon" [width]="27" [height]="27" />
+        <img [src]="item.icon" [width]="22" [height]="22" />
       }
     </div>
   </app-pill>

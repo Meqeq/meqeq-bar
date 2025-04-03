@@ -1,7 +1,6 @@
-import { JsonPipe, NgOptimizedImage } from "@angular/common";
 import { Component } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
-import { map, merge, Observable, scan, tap } from "rxjs";
+import { map, merge, Observable, scan } from "rxjs";
 import { PillComponent } from "../../common/pill/pill.component";
 import { fromTauriEvent } from "../../common/tauri-utils";
 
@@ -20,7 +19,7 @@ export interface TrayItem {
 @Component({
   selector: "app-tray",
   templateUrl: "./tray.component.html",
-  imports: [NgOptimizedImage, JsonPipe, PillComponent],
+  imports: [PillComponent],
 })
 export class TrayComponent {
   readonly trayItems = toSignal(
