@@ -1,11 +1,11 @@
-use std::{
-    io::{BufRead, BufReader},
-    process::{Command, Stdio},
-};
+use std::process::Stdio;
 
-use pipewire::{context::Context, main_loop::MainLoop};
 use serde::{Deserialize, Serialize};
-use tauri::{command, AppHandle, Emitter};
+use tauri::{AppHandle, Emitter};
+use tokio::{
+    io::{AsyncBufReadExt, BufReader},
+    process::Command,
+};
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -36,11 +36,12 @@ struct Metadata {
     default_source: String,
 }
 
-fn get_volume(id: u32) -> f32 {
+async fn get_volume(id: u32) -> f32 {
     let output = Command::new("wpctl")
         .arg("get-volume")
         .arg(id.to_string())
         .output()
+        .await
         .expect("Nie udało się uruchomić wpctl");
 
     let stdout = String::from_utf8_lossy(&output.stdout);
@@ -51,24 +52,26 @@ fn get_volume(id: u32) -> f32 {
     }
 }
 
-pub fn set_volume(id: u32, volume: f32) {
+pub async fn set_volume(id: u32, volume: f32) {
     Command::new("wpctl")
         .arg("set-volume")
         .arg(id.to_string())
         .arg(volume.to_string())
         .output()
+        .await
         .expect("Nie udało się uruchomić wpctl");
 }
 
-pub fn set_default(id: u32) {
+pub async fn set_default(id: u32) {
     Command::new("wpctl")
         .arg("set-default")
         .arg(id.to_string())
         .output()
+        .await
         .expect("Nie udało się uruchomić wpctl");
 }
 
-fn get_pipewire(app: AppHandle) {
+pub async fn init_pipewire(app: AppHandle) {
     let mut output = Command::new("zsh")
         .arg("-c")
         .arg("pw-dump -mN | jq -cM --unbuffered '.[] | select(.type == \"PipeWire:Interface:Node\" or .type == \"PipeWire:Interface:Metadata\")' | jq -cM --unbuffered 'if .type == \"PipeWire:Interface:Node\" then { id: .id, type: .type, class: (.info.props.\"media.class\" // \"\"), nick: (.info.props.\"node.nick\" // \"\"), description: (.info.props.\"node.description\" // \"\"), name: .info.props.\"node.name\", muted: (.info.params.Props[0].mute // false), volume: 0 } else if .type == \"PipeWire:Interface:Metadata\" then { id: .id, type: .type, defaultSink: .metadata[]? | select(.key == \"default.audio.sink\").value.name, defaultSource: .metadata[]? | select(.key == \"default.audio.source\").value.name } end end'")
@@ -80,48 +83,34 @@ fn get_pipewire(app: AppHandle) {
         .stdout
         .take()
         .expect("Nie udało się przekierować stdout");
-    let reader = BufReader::new(stdout);
 
-    for line in reader.lines() {
-        match line {
-            Ok(data) => {
-                let pw_object: PipeWireObject = serde_json::from_str(data.as_str()).unwrap();
+    let mut reader = BufReader::new(stdout);
 
-                if pw_object.type_ == "PipeWire:Interface:Node" {
-                    let mut node: Node = serde_json::from_str(data.as_str()).unwrap();
+    let mut line = String::new();
 
-                    node.volume = get_volume(node.id);
+    loop {
+        reader.read_line(&mut line).await.unwrap();
+        line.pop();
 
-                    app.emit("pipewire_node", serde_json::to_string(&node).unwrap())
-                        .unwrap();
-                } else if pw_object.type_ == "PipeWire:Interface:Metadata" {
-                    let metadata: Metadata = serde_json::from_str(data.as_str()).unwrap();
+        let pw_object: PipeWireObject = serde_json::from_str(line.as_str()).unwrap();
 
-                    app.emit(
-                        "pipewire_metadata",
-                        serde_json::to_string(&metadata).unwrap(),
-                    )
-                    .unwrap();
-                }
-            }
-            Err(e) => {
-                eprintln!("Błąd odczytu: {}", e);
-                break;
-            }
+        if pw_object.type_ == "PipeWire:Interface:Node" {
+            let mut node: Node = serde_json::from_str(line.as_str()).unwrap();
+
+            node.volume = get_volume(node.id).await;
+
+            app.emit("pipewire_node", serde_json::to_string(&node).unwrap())
+                .unwrap();
+        } else if pw_object.type_ == "PipeWire:Interface:Metadata" {
+            let metadata: Metadata = serde_json::from_str(line.as_str()).unwrap();
+
+            app.emit(
+                "pipewire_metadata",
+                serde_json::to_string(&metadata).unwrap(),
+            )
+            .unwrap();
         }
+
+        line.clear();
     }
-}
-
-#[command]
-pub async fn set_up_pipewire(app: AppHandle) -> Result<(), ()> {
-    let mainloop = MainLoop::new(None).unwrap();
-    let context = Context::new(&mainloop).unwrap();
-    let core = context.connect(None).unwrap();
-    let _registry = core.get_registry().unwrap();
-
-    println!("PIPEWIRE INIT");
-
-    get_pipewire(app);
-
-    Ok(())
 }

@@ -4,7 +4,7 @@ use tauri::App;
 
 use crate::{
     utils::gtk::{get_monitor_info, make_bar},
-    utils::hyprland::{get_current_workspaces, WorkspaceInfo},
+    utils::hyprland::WorkspaceInfo,
 };
 
 #[derive(Serialize, Deserialize)]
@@ -32,11 +32,9 @@ impl AppState {
             .map(|monitor| make_bar(app, &monitor))
             .collect();
 
-        let workspaces = get_current_workspaces();
-
         Self {
             bars,
-            workspaces,
+            workspaces: Vec::new(),
             initialized: false,
         }
     }
@@ -53,7 +51,8 @@ impl AppState {
         self.initialized
     }
 
-    pub fn initialize(&mut self) {
+    pub fn initialize(&mut self, mut workspaces: Vec<WorkspaceInfo>) {
         self.initialized = true;
+        self.workspaces.append(&mut workspaces);
     }
 }

@@ -16,7 +16,7 @@ export class BarService {
     { initialValue: 0 },
   );
 
-  private readonly isPopupOpen = signal(false);
+  readonly isPopupOpen = signal(false);
 
   init(): void {
     invoke("initialize");
@@ -38,6 +38,7 @@ export class BarService {
     if (!this.isPopupOpen()) return;
 
     this.router.navigate(["./"], { relativeTo: this.route }).then(() => {
+      this.isPopupOpen.set(false);
       invoke("set_layer", {
         layer: "bottom",
         bar: this.monitor(),

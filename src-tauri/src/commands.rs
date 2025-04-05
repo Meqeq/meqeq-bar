@@ -1,11 +1,5 @@
 use gtk_layer_shell::{Layer, LayerShell};
-use hyprland::{
-    data::{Client, Workspace},
-    event_listener::EventListener,
-    shared::{HyprDataActive, HyprDataActiveOptional},
-};
-use serde::{Deserialize, Serialize};
-use std::{fmt::Debug, sync::Mutex};
+use std::sync::Mutex;
 use tauri::{command, AppHandle, Emitter, Manager};
 use tokio::join;
 
@@ -14,17 +8,26 @@ use crate::{
     dbus::{
         status_notifier_host::StatusNotifierHost, status_notifier_watcher::StatusNotifierWatcher,
     },
-    utils::{self, hyprland::WorkspaceInfo, pipewire::set_up_pipewire},
+    utils::{
+        self,
+        hyprland::{get_active_window, get_current_workspaces, init_hyprland},
+        pipewire::init_pipewire,
+    },
 };
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ActiveWindow {
-    pub class: String,
-    pub title: String,
-}
 
 #[command]
 pub async fn initialize(app: AppHandle) {
+    let (active_window, workspaces) = join!(get_active_window(), get_current_workspaces());
+
+    app.emit(
+        "active_window_change",
+        serde_json::to_string(&active_window).unwrap(),
+    )
+    .unwrap();
+
+    app.emit("workspaces", serde_json::to_string(&workspaces).unwrap())
+        .unwrap();
+
     {
         let state = app.state::<Mutex<AppState>>();
         let mut state = state.lock().unwrap();
@@ -33,128 +36,14 @@ pub async fn initialize(app: AppHandle) {
             return;
         }
 
-        state.initialize();
+        state.initialize(workspaces);
     }
 
     let _ = join!(
-        tokio::spawn(on_active_window_change(app.clone())),
-        tokio::spawn(on_workspace_add(app.clone())),
-        tokio::spawn(on_workspace_remove(app.clone())),
-        tokio::spawn(set_up_pipewire(app.clone())),
-        tokio::spawn(dbus(app.clone())),
+        init_hyprland(app.clone()),
+        init_pipewire(app.clone()),
+        init_dbus(app.clone()),
     );
-}
-
-#[command]
-pub async fn on_workspace_add(app: AppHandle) {
-    let mut listener = EventListener::new();
-
-    listener.add_workspace_added_handler(move |data| {
-        println!("{:?}", data);
-        let workspace = Workspace::get_active().unwrap();
-
-        let state = app.state::<Mutex<AppState>>();
-        let mut state = state.lock().unwrap();
-
-        state.add_workspace(WorkspaceInfo {
-            id: workspace.id,
-            name: workspace.name,
-            monitor_name: workspace.monitor,
-            last_window: workspace.last_window,
-            monitor: workspace.monitor_id.unwrap().into(),
-        });
-
-        app.emit(
-            "workspaces",
-            serde_json::to_string(&state.workspaces).unwrap(),
-        )
-        .unwrap();
-    });
-    listener.start_listener().unwrap();
-}
-
-#[command]
-pub async fn on_workspace_remove(app: AppHandle) {
-    let mut listener = EventListener::new();
-
-    listener.add_workspace_deleted_handler(move |data| {
-        let state = app.state::<Mutex<AppState>>();
-        let mut state = state.lock().unwrap();
-
-        state.remove_workspace(data.id);
-
-        app.emit(
-            "workspaces",
-            serde_json::to_string(&state.workspaces).unwrap(),
-        )
-        .unwrap();
-    });
-
-    listener.start_listener().unwrap();
-}
-
-#[command]
-pub async fn on_active_window_change(app: AppHandle) {
-    match Client::get_active() {
-        Ok(window) => match window {
-            Some(active_window) => {
-                println!("AAA: {:?}", active_window);
-
-                app.emit(
-                    "active_window_change",
-                    serde_json::to_string(&ActiveWindow {
-                        class: active_window.class,
-                        title: active_window.title,
-                    })
-                    .unwrap(),
-                )
-                .unwrap();
-
-                app.emit("active_workspace_change", active_window.workspace.id)
-                    .unwrap();
-
-                {
-                    let state = app.state::<Mutex<AppState>>();
-                    let state = state.lock().unwrap();
-
-                    app.emit(
-                        "workspaces",
-                        serde_json::to_string(&state.workspaces).unwrap(),
-                    )
-                    .unwrap();
-                }
-            }
-            None => {}
-        },
-        Err(_) => {}
-    }
-
-    let mut listener = EventListener::new();
-
-    listener.add_active_window_changed_handler(move |data| {
-        let event_data = data.unwrap();
-
-        let active_window = serde_json::to_string(&ActiveWindow {
-            class: event_data.class,
-            title: event_data.title,
-        })
-        .unwrap();
-
-        app.emit("active_window_change", active_window).unwrap();
-        app.emit(
-            "active_workspace_change",
-            Workspace::get_active().unwrap().id,
-        )
-        .unwrap();
-    });
-
-    listener.start_listener().unwrap();
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ActivePopup {
-    pub name: String,
-    pub monitor: u32,
 }
 
 #[command]
@@ -176,12 +65,12 @@ pub async fn set_layer(app: AppHandle, bar: usize, layer: String) {
 
 #[command]
 pub async fn set_volume(id: u32, volume: f32) {
-    utils::pipewire::set_volume(id, volume);
+    utils::pipewire::set_volume(id, volume).await;
 }
 
 #[command]
 pub async fn set_default(id: u32) {
-    utils::pipewire::set_default(id);
+    utils::pipewire::set_default(id).await;
 }
 
 #[tauri::command]
@@ -190,7 +79,7 @@ pub fn set_current_workspace(id: i32, app: AppHandle) {
 }
 
 #[command]
-pub async fn dbus(app: AppHandle) {
+pub async fn init_dbus(app: AppHandle) {
     let notifier_host = StatusNotifierHost::connect(app).await;
 
     join!(StatusNotifierWatcher::serve(), notifier_host.serve());
