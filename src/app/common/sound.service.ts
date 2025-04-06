@@ -15,7 +15,7 @@ export class SoundService {
     fromTauriEvent<PipeWireNode>("pipewire_node").pipe(
       scan(
         (acc, node) => {
-          console.log(node);
+          // console.log(node);
 
           if (acc.nodeMapId.has(node.payload.id)) {
             acc.nodeMapId.set(node.payload.id, node.payload);

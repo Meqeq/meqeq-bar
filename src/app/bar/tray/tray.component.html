@@ -1,8 +1,39 @@
 @if (trayItems()?.length) {
   <app-pill>
+    <ng-template #menuTemplate let-menu>
+      <div class="py-3">
+        <ul class="menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm">
+          @for (entry of menu.entries; track $index) {
+            @if (entry.type === "separator") {
+              <li class="menu-disabled">
+                <hr class="rounded-none p-0 m-2" />
+              </li>
+            } @else {
+              <li>
+                <a>{{ entry.label }}</a>
+              </li>
+            }
+          }
+        </ul>
+      </div>
+    </ng-template>
+
     <div class="flex">
       @for (item of trayItems(); track $index) {
-        <img [src]="item.icon" [width]="22" [height]="22" />
+        <img
+          #anchor
+          [src]="item.icon"
+          [width]="22"
+          [height]="22"
+          (click)="
+            popoverService.open(menuTemplate, {
+              anchor,
+              context: {
+                $implicit: menus().get(item.service),
+              },
+            })
+          "
+        />
       }
     </div>
   </app-pill>
