@@ -6,19 +6,9 @@ import {
   Injector,
   Renderer2,
   RendererFactory2,
-  signal,
   TemplateRef,
 } from "@angular/core";
-import { toSignal } from "@angular/core/rxjs-interop";
-import { ActivatedRoute } from "@angular/router";
 import { invoke } from "@tauri-apps/api/core";
-import { map } from "rxjs";
-
-interface Popover {
-  backdrop: HTMLDivElement;
-  container: HTMLDivElement;
-  view: EmbeddedViewRef<unknown>;
-}
 
 @Injectable({
   providedIn: "root",
@@ -30,11 +20,7 @@ export class PopoverService {
 
   private readonly renderer: Renderer2;
 
-  private readonly opened = signal<EmbeddedViewRef<unknown>[]>([]);
-
   private readonly popoverContainer: HTMLDivElement;
-
-  private readonly popovers = new Map<TemplateRef<unknown>, Popover>();
 
   constructor() {
     this.renderer = this.rendererFactory.createRenderer(null, null);
@@ -50,30 +36,7 @@ export class PopoverService {
     );
 
     this.renderer.appendChild(container, this.popoverContainer);
-
-    // this.popoverElement = this.renderer.createElement("div");
-    // this.renderer.addClass(this.popoverElement, "dropdown");
-    // this.renderer.addClass(this.popoverElement, "dropdown-open");
-    // this.renderer.addClass(this.popoverElement, "h-screen");
-    // this.renderer.addClass(this.popoverElement, "w-screen");
-    // // this.renderer.addClass(this.popoverElement, "bg-gray-100");
-    // this.renderer.addClass(this.popoverElement, "absolute");
-    // this.renderer.addClass(this.popoverElement, "top-0");
-
-    // this.popoverElement.addEventListener("mouseleave", () => {
-    //   this.closeAll();
-    // });
-
-    // this.popoverElement.addEventListener("click", () => {
-    //   this.closeAll();
-    // });
-
-    // this.renderer.appendChild(container, this.popoverElement);
   }
-
-  readonly isPopupOpen = signal(false);
-
-  readonly template = signal<TemplateRef<unknown> | undefined>(undefined);
 
   open(
     template: TemplateRef<unknown>,
@@ -90,8 +53,6 @@ export class PopoverService {
     }).then(() => {
       const backdrop = this.createBackdrop();
 
-      console.log(extra.anchor);
-
       const container = this.createContainer();
 
       const view = template.createEmbeddedView(
@@ -99,17 +60,15 @@ export class PopoverService {
         extra.injector ? extra.injector : this.injector,
       );
 
-      this.applicationRef.attachView(view);
       view.rootNodes.forEach((node) => {
         this.renderer.appendChild(container, node);
       });
 
+      this.applicationRef.attachView(view);
       view.detectChanges();
 
       this.renderer.appendChild(this.popoverContainer, backdrop);
       this.renderer.appendChild(this.popoverContainer, container);
-
-      console.log(container.clientWidth, extra.anchor.offsetTop);
 
       const [posX, posY] = this.getPosition(extra.anchor, container);
 
@@ -135,12 +94,6 @@ export class PopoverService {
           layer: "bottom",
           bar: extra.monitor ?? 0,
         });
-      });
-
-      this.popovers.set(template, {
-        backdrop,
-        container,
-        view,
       });
     });
   }
@@ -186,23 +139,6 @@ export class PopoverService {
     if (y + clientHeight > screenHeight)
       resY -= clientHeight + anchor.clientHeight;
 
-    console.log({
-      resX,
-      resY,
-      a: anchor.offsetTop,
-      screenWidth,
-      screenHeight,
-      clientWidth,
-      clientHeight,
-    });
-
     return [resX, resY];
-  }
-
-  closeAll(): void {
-    this.opened().forEach((popover) => {
-      popover.destroy();
-    });
-    this.opened.set([]);
   }
 }

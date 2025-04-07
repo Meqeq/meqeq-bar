@@ -2,11 +2,13 @@ use gtk_layer_shell::{Layer, LayerShell};
 use std::sync::Mutex;
 use tauri::{command, AppHandle, Emitter, Manager};
 use tokio::join;
+use zbus::zvariant::Value;
 
 use crate::{
     app_state::AppState,
     dbus::{
-        status_notifier_host::StatusNotifierHost, status_notifier_watcher::StatusNotifierWatcher,
+        dbus_menu::DbusMenuProxy, status_notifier_host::StatusNotifierHost,
+        status_notifier_watcher::StatusNotifierWatcher,
     },
     utils::{
         self,
@@ -76,6 +78,21 @@ pub async fn set_default(id: u32) {
 #[tauri::command]
 pub fn set_current_workspace(id: i32, app: AppHandle) {
     utils::hyprland::set_current_workspace(id, app);
+}
+
+#[command]
+pub async fn call_tray_menu_item(service: String, path: String, id: i32, app: AppHandle) {
+    let connection = {
+        let state = app.state::<Mutex<AppState>>();
+        let state = state.lock().unwrap();
+        state.connection.clone()
+    };
+
+    let proxy = DbusMenuProxy::new(&connection, service, path)
+        .await
+        .unwrap();
+
+    proxy.event(id, "clicked", &Value::I32(0), 0).await.unwrap();
 }
 
 #[command]

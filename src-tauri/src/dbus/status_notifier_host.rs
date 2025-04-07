@@ -1,33 +1,27 @@
-use std::{
-    collections::{BTreeMap, HashMap},
-    ops::Deref,
-    process,
-    sync::Arc,
-};
+use core::fmt;
+use std::{collections::HashMap, ops::Deref, sync::Mutex};
 
 use serde::{Deserialize, Serialize};
-use serde_json::from_value;
-use std::error::Error;
-use tauri::{AppHandle, Emitter};
+use tauri::{AppHandle, Emitter, Manager};
 use tokio::{
     fs::File,
     io::{AsyncReadExt, BufReader},
-    task::JoinHandle,
 };
 use tokio_stream::StreamExt;
 use zbus::{
     interface,
-    zvariant::{self, OwnedValue, Value},
+    zvariant::{OwnedValue, Value},
     Connection,
 };
 
-use crate::dbus::status_notifier_item::StatusNotifierItemProxy;
+use crate::{app_state::AppState, dbus::status_notifier_item::StatusNotifierItemProxy};
 
 use super::{dbus_menu::DbusMenuProxy, status_notifier_watcher::StatusNotifierWatcherProxy};
 
-struct TrayItem {
+struct TrayItem<'a> {
     // service: String,
-    handle: JoinHandle<()>,
+    // handle: JoinHandle<()>,
+    menu_proxy: DbusMenuProxy<'a>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -36,6 +30,8 @@ struct TrayItemEvent {
     path: String,
     title: String,
     icon: Vec<u8>,
+    menu: Vec<MenuEntry>,
+    menu_path: String,
 }
 
 async fn load_icon(icon_name: String, path: String) -> Vec<u8> {
@@ -70,7 +66,7 @@ async fn load_icon(icon_name: String, path: String) -> Vec<u8> {
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 struct MenuEntry {
-    position: i32,
+    id: i32,
     label: String,
     visible: bool,
     type_: String,
@@ -80,7 +76,6 @@ struct MenuEntry {
 #[serde(rename_all = "camelCase")]
 struct TrayItemMenu {
     service: String,
-    entries: Vec<MenuEntry>,
 }
 
 #[derive(Debug)]
@@ -104,7 +99,7 @@ impl TryFrom<&OwnedValue> for MenuEntry {
                     return Err(CError::WrongFieldCount(fields.len()));
                 }
 
-                let position = match &fields[0] {
+                let id = match &fields[0] {
                     Value::I32(n) => *n,
                     _ => return Err(CError::FieldTypeError("i32")),
                 };
@@ -135,7 +130,7 @@ impl TryFrom<&OwnedValue> for MenuEntry {
                 };
 
                 Ok(MenuEntry {
-                    position,
+                    id,
                     label,
                     visible,
                     type_,
@@ -146,11 +141,7 @@ impl TryFrom<&OwnedValue> for MenuEntry {
     }
 }
 
-async fn get_menu(connection: &Connection, service: String, path: String) -> TrayItemMenu {
-    let proxy = DbusMenuProxy::new(connection, service.clone(), path)
-        .await
-        .unwrap();
-
+async fn get_menu<'a>(proxy: &DbusMenuProxy<'a>) -> Vec<MenuEntry> {
     let empty: [&str; 0] = [];
     let menu = proxy.get_layout(0, 1, &empty).await.unwrap();
 
@@ -165,7 +156,7 @@ async fn get_menu(connection: &Connection, service: String, path: String) -> Tra
         })
         .collect();
 
-    TrayItemMenu { service, entries }
+    entries
 }
 
 pub struct StatusNotifierHost {
@@ -173,24 +164,25 @@ pub struct StatusNotifierHost {
     app: AppHandle,
 }
 
+impl fmt::Debug for StatusNotifierHost {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("StatusNotifierHost").finish()
+    }
+}
+
 impl StatusNotifierHost {
-    pub async fn connect(app: AppHandle) -> Arc<Self> {
-        let connection = Connection::session().await.unwrap();
+    pub async fn connect(app: AppHandle) -> Self {
+        let state = app.state::<Mutex<AppState>>();
+        let state = state.lock().unwrap();
 
-        connection
-            .request_name(format!("org.kde.StatusNotifierHost-{}", process::id()))
-            .await
-            .unwrap();
+        let connection = state.connection.clone();
 
-        let kek = Arc::new(StatusNotifierHost {
-            connection: connection.clone(),
-            app,
-        });
+        std::mem::drop(state);
 
-        return kek;
+        StatusNotifierHost { connection, app }
     }
 
-    async fn handle_new_item(&self, item: String) {
+    async fn handle_new_item(&self, item: String) -> DbusMenuProxy {
         let (service, path) = item.split_once("/").unwrap();
 
         let item_proxy = StatusNotifierItemProxy::new(
@@ -201,42 +193,33 @@ impl StatusNotifierHost {
         .await
         .unwrap();
 
-        let menu = get_menu(
-            &self.connection,
-            service.to_string(),
-            item_proxy.menu().await.unwrap().to_string(),
-        )
-        .await;
-
-        self.app
-            .emit("tray_item_menu", serde_json::to_string(&menu).unwrap())
-            .unwrap();
+        let menu_path = item_proxy.menu().await.unwrap().to_string();
+        let menu_proxy =
+            DbusMenuProxy::new(&self.connection, service.to_string(), menu_path.clone())
+                .await
+                .unwrap();
 
         let to_emit = TrayItemEvent {
             service: service.to_string(),
-            path: path.to_string(),
+            path: format!("/{}", path).to_string(),
             title: item_proxy.title().await.unwrap(),
             icon: load_icon(
                 item_proxy.icon_name().await.unwrap(),
                 item_proxy.icon_theme_path().await.unwrap(),
             )
             .await,
+            menu: get_menu(&menu_proxy).await,
+            menu_path,
         };
 
         self.app
             .emit("tray_item_add", serde_json::to_string(&to_emit).unwrap())
             .unwrap();
 
-        let mut stream = item_proxy.receive_new_title().await.unwrap();
-
-        while let Some(msg) = stream.next().await {
-            let args = msg.message().body();
-
-            println!("DUPSKOSSS: {:?}", args);
-        }
+        menu_proxy
     }
 
-    pub async fn serve(self: Arc<Self>) {
+    pub async fn serve(&self) {
         let proxy = StatusNotifierWatcherProxy::new(&self.connection)
             .await
             .unwrap();
@@ -259,14 +242,10 @@ impl StatusNotifierHost {
                     let service = message.args().unwrap().message;
                     println!("REGISTER: {:?}", service);
 
-                    let self_clone = Arc::clone(&self);
                     let service_clone = service.clone();
 
                     let tray_item = TrayItem {
-                        // service: service_clone.clone(),
-                        handle: tokio::spawn(async move {
-                            self_clone.handle_new_item(service_clone).await
-                        })
+                        menu_proxy: self.handle_new_item(service_clone).await
                     };
 
                     map.insert(service, tray_item);
@@ -276,7 +255,7 @@ impl StatusNotifierHost {
                     let service = message.args().unwrap().message;
                     println!("UNREGISTER: {:?}", message.args().unwrap());
 
-                    let unregistered = map.remove(&service).unwrap();
+                    let _ = map.remove(&service).unwrap();
 
                     let (service, path) = service.split_once("/").unwrap();
 
@@ -285,13 +264,13 @@ impl StatusNotifierHost {
                         path: path.to_string(),
                         title: String::new(),
                         icon: Vec::new(),
+                        menu: Vec::new(),
+                        menu_path: String::new(),
                     };
 
                     self.app
                     .emit("tray_item_remove", serde_json::to_string(&to_emit).unwrap())
                     .unwrap();
-
-                    unregistered.handle.abort();
                 }
             }
         }

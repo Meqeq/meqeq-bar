@@ -3,27 +3,32 @@ mod commands;
 mod dbus;
 mod utils;
 
-use std::sync::Mutex;
-
 use app_state::AppState;
-use commands::{initialize, set_current_workspace, set_default, set_layer, set_volume};
+use commands::{
+    call_tray_menu_item, initialize, set_current_workspace, set_default, set_layer, set_volume,
+};
 
-use tauri::Manager;
+use tauri::{App, Manager};
+
+fn setup<'a>(app: &'a mut App) -> Result<(), Box<dyn std::error::Error>> {
+    tauri::async_runtime::block_on(async move {
+        let state = AppState::new(&app).await;
+        app.manage(state);
+    });
+
+    Ok(())
+}
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
-        .setup(|app| {
-            let state = AppState::new(&app);
-            app.manage(Mutex::new(state));
-
-            Ok(())
-        })
+        .setup(setup)
         .invoke_handler(tauri::generate_handler![
             initialize,
             set_layer,
             set_volume,
             set_default,
+            call_tray_menu_item,
             set_current_workspace,
         ])
         .run(tauri::generate_context!())

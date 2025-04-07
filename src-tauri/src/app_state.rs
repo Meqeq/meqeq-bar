@@ -1,6 +1,9 @@
+use std::{process, sync::Mutex};
+
 use gtk::ApplicationWindow;
 use serde::{Deserialize, Serialize};
 use tauri::App;
+use zbus::Connection;
 
 use crate::{
     utils::gtk::{get_monitor_info, make_bar},
@@ -17,6 +20,7 @@ struct WorkspacesInfo {
 pub struct AppState {
     pub bars: Vec<ApplicationWindow>,
     pub workspaces: Vec<WorkspaceInfo>,
+    pub connection: Connection,
     initialized: bool,
 }
 
@@ -24,7 +28,14 @@ unsafe impl Send for AppState {}
 unsafe impl Sync for AppState {}
 
 impl AppState {
-    pub fn new(app: &App) -> Self {
+    pub async fn new(app: &App) -> Mutex<Self> {
+        let connection = Connection::session().await.unwrap();
+
+        connection
+            .request_name(format!("org.kde.StatusNotifierHost-{}", process::id()))
+            .await
+            .unwrap();
+
         let monitor_info = get_monitor_info();
 
         let bars: Vec<ApplicationWindow> = monitor_info
@@ -32,11 +43,12 @@ impl AppState {
             .map(|monitor| make_bar(app, &monitor))
             .collect();
 
-        Self {
+        Mutex::new(Self {
             bars,
             workspaces: Vec::new(),
+            connection,
             initialized: false,
-        }
+        })
     }
 
     pub fn add_workspace(&mut self, workspace: WorkspaceInfo) {
