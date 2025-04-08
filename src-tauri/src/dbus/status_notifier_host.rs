@@ -1,4 +1,5 @@
-use core::fmt;
+use std::fmt;
+use std::io::Write;
 use std::{collections::HashMap, ops::Deref, sync::Mutex};
 
 use serde::{Deserialize, Serialize};
@@ -47,22 +48,6 @@ async fn load_icon(icon_name: String, path: String) -> Vec<u8> {
     buf
 }
 
-// impl fmt::Display for ConversionError {
-//     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-//         match self {
-//             ConversionError::NotAStructure => write!(f, "Value is not a structure"),
-//             ConversionError::WrongFieldCount(count) => {
-//                 write!(f, "Expected 3 fields, got {}", count)
-//             }
-//             ConversionError::FieldTypeError(field) => {
-//                 write!(f, "Field '{}' has unexpected type", field)
-//             }
-//         }
-//     }
-// // }
-
-// impl Error for ConversionError {}
-
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 struct MenuEntry {
@@ -72,21 +57,33 @@ struct MenuEntry {
     type_: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct TrayItemMenu {
     service: String,
 }
 
-#[derive(Debug)]
-enum CError {
+enum KekError {
     NotAStructure,
     WrongFieldCount(usize),
     FieldTypeError(&'static str),
 }
 
+impl fmt::Debug for KekError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            KekError::NotAStructure => write!(f, "Not a structure"),
+            _ => write!(f, "LEL"),
+            KekError::WrongFieldCount(count) => {
+                write!(f, "Wrong field count: {}, expected 3", count)
+            }
+            KekError::FieldTypeError(t) => write!(f, "Field type error {}", t),
+        }
+    }
+}
+
 impl TryFrom<&OwnedValue> for MenuEntry {
-    type Error = CError;
+    type Error = KekError;
 
     fn try_from(owned: &OwnedValue) -> Result<Self, Self::Error> {
         let value = owned.deref();
@@ -96,12 +93,11 @@ impl TryFrom<&OwnedValue> for MenuEntry {
                 let fields = s.fields();
 
                 if fields.len() != 3 {
-                    return Err(CError::WrongFieldCount(fields.len()));
+                    return Err(KekError::WrongFieldCount(fields.len()));
                 }
-
                 let id = match &fields[0] {
                     Value::I32(n) => *n,
-                    _ => return Err(CError::FieldTypeError("i32")),
+                    _ => return Err(KekError::FieldTypeError("i32")),
                 };
 
                 let (label, visible, type_) = match &fields[1] {
@@ -126,7 +122,7 @@ impl TryFrom<&OwnedValue> for MenuEntry {
 
                         (label, visible, _type)
                     }
-                    _ => return Err(CError::NotAStructure),
+                    _ => return Err(KekError::NotAStructure),
                 };
 
                 Ok(MenuEntry {
@@ -136,7 +132,7 @@ impl TryFrom<&OwnedValue> for MenuEntry {
                     type_,
                 })
             }
-            _ => Err(CError::NotAStructure),
+            _ => Err(KekError::NotAStructure),
         }
     }
 }
@@ -172,12 +168,12 @@ impl fmt::Debug for StatusNotifierHost {
 
 impl StatusNotifierHost {
     pub async fn connect(app: AppHandle) -> Self {
-        let state = app.state::<Mutex<AppState>>();
-        let state = state.lock().unwrap();
+        let connection = {
+            let state = app.state::<Mutex<AppState>>();
+            let state = state.lock().unwrap();
 
-        let connection = state.connection.clone();
-
-        std::mem::drop(state);
+            state.connection.clone()
+        };
 
         StatusNotifierHost { connection, app }
     }
