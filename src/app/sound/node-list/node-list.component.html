@@ -1,0 +1,18 @@
+<div class="p-4">
+  <h2 class="text-sm font-bold mb-2">
+    @switch (type()) {
+      @case ("sink") {
+        Wyjścia
+      }
+      @case ("source") {
+        Wejścia
+      }
+    }
+  </h2>
+
+  <div class="flex flex-col gap-2">
+    @for (node of items(); track node.id) {
+      <app-node [node]="node" [type]="type()"></app-node>
+    }
+  </div>
+</div>

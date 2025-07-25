@@ -1,0 +1,30 @@
+<div class="bg-base-100 p-4 rounded-box flex flex-col items-center w-148">
+  <div class="self-start tabs tabs-lift">
+    <input
+      type="radio"
+      name="tab"
+      class="tab"
+      aria-label="Urządzenia"
+      [checked]="tab() === 'devices'"
+      (click)="tab.set('devices')"
+    />
+
+    <input
+      type="radio"
+      name="tab"
+      class="tab"
+      aria-label="Programy"
+      [checked]="tab() === 'streams'"
+      (click)="tab.set('streams')"
+    />
+  </div>
+
+  <div class="w-full border-1 border-base-300 -mt-[1px]">
+    @if (tab() === "devices") {
+      <app-node-list type="sink"></app-node-list>
+      <app-node-list type="source"></app-node-list>
+    } @else {
+      <app-node-list type="stream"></app-node-list>
+    }
+  </div>
+</div>

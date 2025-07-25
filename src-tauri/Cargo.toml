@@ -1,36 +1,50 @@
 [package]
-name = "meqeq-bar"
+name = "app"
 version = "0.1.0"
-description = "Status bar"
+description = "A Tauri App"
 authors = ["you"]
+license = ""
+repository = ""
 edition = "2021"
+rust-version = "1.77.2"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[profile.dev]
-incremental = true
-
 [lib]
-# The `_lib` suffix may seem redundant but it is necessary
-# to make the lib name unique and wouldn't conflict with the bin name.
-# This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
 name = "meqeq_bar_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
-tauri-build = { version = "2", features = [] }
+tauri-build = { version = "2.3.0", features = [] }
 
 [dependencies]
-tauri = { version = "2", features = ["unstable"] }
-tauri-plugin-opener = "2"
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
+serde_json = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+log = "0.4"
+tauri = { version = "2.6.2", features = ["unstable"] }
+tauri-plugin-log = "2"
 gtk = "0.18.1"
 gtk-layer-shell = "0.8.2"
-glib = "0.20.9"
+#glib = "0.20.9"
 hyprland = "0.4.0-beta.2"
 pipewire="0.8.0"
+libspa="0.8.0"
+libspa-sys="0.8.0"
+bytemuck = "1.15"
 zbus="5.5.0"
+rand="0.9.1"
+byteorder = "1.4.3"
 event-listener="5.4.0"
 tokio= { version = "1.44.1", features = ["full"] }
 tokio-stream= { version = "0.1.17" }
+
+[profile.dev]
+opt-level = 1
+incremental = true # Compile your binary in smaller steps.
+
+[profile.release]
+codegen-units = 1 # Allows LLVM to perform better optimization.
+lto = true # Enables link-time-optimizations.
+opt-level = "s" # Prioritizes small binary size. Use `3` if you prefer speed.
+panic = "abort" # Higher performance by disabling panic handlers.
+strip = true # Ensures debug symbols are removed.

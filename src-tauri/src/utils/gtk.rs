@@ -37,8 +37,8 @@ pub fn get_monitor_info() -> Vec<MonitorInfo> {
 }
 
 pub fn make_bar(app: &App, monitor: &MonitorInfo) -> ApplicationWindow {
-    println!("WINDOW: {}", monitor.index);
-    println!("{}", format!("/bar/{}", monitor.index));
+    // println!("WINDOW: {}", monitor.index);
+    // println!("{}", format!("/bar/{}", monitor.index));
 
     let window = WebviewWindowBuilder::new(
         app,
@@ -61,7 +61,7 @@ pub fn make_bar(app: &App, monitor: &MonitorInfo) -> ApplicationWindow {
     gtk_window.set_layer(Layer::Bottom);
     gtk_window.set_anchor(Edge::Bottom, true);
 
-    gtk_window.set_exclusive_zone(42);
+    gtk_window.set_exclusive_zone(50);
     gtk_window.set_height_request(monitor.height);
     gtk_window.set_width_request(monitor.width);
     gtk_window.set_monitor(&monitor.monitor);

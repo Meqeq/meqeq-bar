@@ -1,0 +1,293 @@
+use std::sync::Arc;
+
+use libspa::{
+    param::ParamType,
+    pod::{Object, Property, Value, ValueArray},
+    utils::dict::DictRef,
+};
+use pipewire::{
+    device::{Device, DeviceListener},
+    registry::{GlobalObject, Registry},
+};
+use tauri::AppHandle;
+
+use super::deserialize::deserialize;
+
+pub struct Device2 {
+    pub id: u32,
+    pub card_name: String,
+    pub description: String,
+}
+
+#[derive(Debug)]
+pub struct MediaClass {
+    pub name: String,
+    pub devices: Vec<i32>,
+}
+
+#[derive(Debug)]
+pub struct DeviceEnumProfile {
+    pub id: u32,
+    pub index: i32,
+    pub name: String,
+    pub description: String,
+    pub priority: i32,
+    pub available: bool,
+    pub classes: Vec<MediaClass>,
+}
+
+#[derive(Debug)]
+pub enum DeviceRouteDirection {
+    Input,
+    Output,
+    Unknown,
+}
+
+#[derive(Debug)]
+pub struct DeviceEnumRoute {
+    pub id: u32,
+    pub index: i32,
+    pub direction: DeviceRouteDirection,
+    pub name: String,
+    pub description: String,
+    pub priority: i32,
+    pub available: bool,
+    pub profiles: Vec<i32>,
+    pub devices: Vec<i32>,
+}
+
+fn parse_media_class(prop: Property) -> Vec<MediaClass> {
+    let result = vec![];
+
+    if let Value::Struct(classes_struct) = prop.value {
+        let skip = match classes_struct.first() {
+            Some(Value::Int(_)) => 1,
+            _ => 0,
+        };
+
+        let result: Vec<MediaClass> = classes_struct
+            .iter()
+            .skip(skip)
+            .filter_map(|class| {
+                if let Value::Struct(class) = class {
+                    if let [Value::String(name), _, _, Value::ValueArray(ValueArray::Int(devices))] = class.as_slice() {
+                        return Some(MediaClass {
+                            name: name.to_string(),
+                            devices: devices.clone(),
+                        });
+                    }
+                }
+
+                None
+            })
+            .collect();
+
+        return result;
+    }
+
+    result
+}
+
+fn extract_enum_profile(param: Object) -> DeviceEnumProfile {
+    let mut index = None;
+    let mut name = None;
+    let mut description = None;
+    let mut priority = None;
+    let mut available = None;
+    let mut classes = None;
+
+    for prop in param.properties {
+        match prop.key {
+            libspa_sys::SPA_PARAM_PROFILE_index => {
+                if let Value::Int(value) = prop.value {
+                    index = Some(value);
+                }
+            }
+            libspa_sys::SPA_PARAM_PROFILE_description => {
+                if let Value::String(value) = prop.value {
+                    description = Some(value);
+                }
+            }
+            libspa_sys::SPA_PARAM_PROFILE_available => {
+                if let Value::Id(libspa::utils::Id(value)) = prop.value {
+                    available = Some(value != libspa_sys::SPA_PARAM_AVAILABILITY_no);
+                }
+            }
+            libspa_sys::SPA_PARAM_PROFILE_classes => {
+                classes = Some(parse_media_class(prop));
+            }
+            libspa_sys::SPA_PARAM_PROFILE_name => {
+                if let Value::String(value) = prop.value {
+                    name = Some(value);
+                }
+            }
+            libspa_sys::SPA_PARAM_PROFILE_priority => {
+                if let Value::Int(value) = prop.value {
+                    priority = Some(value);
+                }
+            }
+            _ => {}
+        }
+    }
+
+    DeviceEnumProfile {
+        id: 0,
+        index: index.unwrap(),
+        name: name.unwrap(),
+        description: description.unwrap(),
+        priority: priority.unwrap(),
+        available: available.unwrap(),
+        classes: classes.unwrap_or(vec![]),
+    }
+}
+
+fn extract_enum_route(param: Object) -> DeviceEnumRoute {
+    let mut index = None;
+    let mut direction = None;
+    let mut name = None;
+    let mut description = None;
+    let mut priority = None;
+    let mut available = None;
+    let mut profiles = None;
+    let mut devices = None;
+
+    for prop in param.properties {
+        match prop.key {
+            libspa_sys::SPA_PARAM_ROUTE_index => {
+                if let Value::Int(value) = prop.value {
+                    index = Some(value);
+                }
+            }
+            libspa_sys::SPA_PARAM_ROUTE_direction => {
+                if let Value::Int(value) = prop.value {
+                    direction = Some(match value {
+                        0 => DeviceRouteDirection::Input,
+                        _ => DeviceRouteDirection::Output,
+                    });
+                }
+            }
+            libspa_sys::SPA_PARAM_ROUTE_name => {
+                if let Value::String(value) = prop.value {
+                    name = Some(value);
+                }
+            }
+            libspa_sys::SPA_PARAM_ROUTE_description => {
+                if let Value::String(value) = prop.value {
+                    description = Some(value);
+                }
+            }
+            libspa_sys::SPA_PARAM_ROUTE_priority => {
+                if let Value::Int(value) = prop.value {
+                    priority = Some(value);
+                }
+            }
+            libspa_sys::SPA_PARAM_ROUTE_available => {
+                if let Value::Id(libspa::utils::Id(value)) = prop.value {
+                    available = Some(value != libspa_sys::SPA_PARAM_AVAILABILITY_no);
+                }
+            }
+            libspa_sys::SPA_PARAM_ROUTE_profiles => {
+                if let Value::ValueArray(ValueArray::Int(value)) = prop.value {
+                    profiles = Some(value);
+                }
+            }
+            libspa_sys::SPA_PARAM_ROUTE_devices => {
+                if let Value::ValueArray(ValueArray::Int(value)) = prop.value {
+                    devices = Some(value);
+                }
+            }
+            _ => {
+                // println!("LEFTT {:?} {:?}", prop.key, prop.value);
+            }
+        }
+    }
+
+    DeviceEnumRoute {
+        id: 0,
+        direction: direction.unwrap_or(DeviceRouteDirection::Unknown),
+        index: index.unwrap(),
+        name: name.unwrap(),
+        description: description.unwrap(),
+        priority: priority.unwrap(),
+        available: available.unwrap(),
+        profiles: profiles.unwrap(),
+        devices: devices.unwrap(),
+    }
+}
+
+fn handle_props_change(id: u32, proxy: &Device, app: Arc<AppHandle>) -> DeviceListener {
+    let handle = Arc::clone(&app);
+
+    let listener = proxy
+        .add_listener_local()
+        .param(move |_p1, param_type, _p3, next, p5| {
+            if let Some(param) = deserialize(p5) {
+                match param_type {
+                    ParamType::Props => {
+                        // let props = extract_props(id, param);
+
+                        // handle
+                        //     .emit("pw_node_props", serde_json::to_string(&props).unwrap())
+                        //     .unwrap();
+
+                        // println!("PROPS: {:?}", param);
+                    }
+                    ParamType::EnumProfile => {
+                        let res = extract_enum_profile(param);
+                        // println!("ENUM PROFILE: {:?}", res);
+                    }
+                    ParamType::EnumRoute => {
+                        let res = extract_enum_route(param);
+                        //println!("ENUM ROUTE {:?}", res);
+                    }
+                    ParamType::Profile => {
+                        let res = extract_enum_profile(param);
+                        // println!("PROFILE: {:?}", res);
+                    }
+                    ParamType::Route => {
+                        let res = extract_enum_route(param);
+                        // println!("ROUTTTE: {:?}", res);
+                    }
+                    _ => {
+                        // println!("KEKEKEKEK: {:?}", param);
+                    }
+                }
+            }
+        })
+        .register();
+
+    proxy.subscribe_params(&[
+        ParamType::EnumProfile,
+        ParamType::EnumRoute,
+        ParamType::Profile,
+        ParamType::Route,
+        ParamType::Props,
+        ParamType::PropInfo,
+    ]);
+
+    listener
+}
+
+pub fn handle_pipewire_device(
+    global: &GlobalObject<&DictRef>,
+    registry: &Registry,
+    app: Arc<AppHandle>,
+) -> (Arc<Device>, DeviceListener) {
+    let mut device = Device2 {
+        id: global.id,
+        card_name: String::from(global.props.unwrap().get("alsa.card_name").unwrap_or("")),
+        description: String::from(
+            global
+                .props
+                .unwrap()
+                .get("device.description")
+                .unwrap_or(""),
+        ),
+    };
+
+    let proxy = Arc::new(registry.bind::<Device, _>(global).unwrap());
+
+    let listener = handle_props_change(global.id, &proxy, app);
+
+    (proxy, listener)
+}

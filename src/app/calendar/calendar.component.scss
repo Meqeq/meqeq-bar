@@ -1,0 +1,11 @@
+::ng-deep {
+  .pika-single {
+    border: 0;
+  }
+
+  .is-today .pika-day {
+    background-color: var(--color-primary) !important;
+    color: var(--color-primary-content) !important;
+    border-radius: 3px;
+  }
+}

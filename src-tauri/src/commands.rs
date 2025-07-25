@@ -1,7 +1,10 @@
 use gtk_layer_shell::{Layer, LayerShell};
-use std::sync::Mutex;
+use std::{
+    borrow::Borrow,
+    sync::{Arc, Mutex},
+};
 use tauri::{command, AppHandle, Emitter, Manager};
-use tokio::join;
+use tokio::{join, task};
 use zbus::zvariant::Value;
 
 use crate::{
@@ -10,6 +13,7 @@ use crate::{
         dbus_menu::DbusMenuProxy, status_notifier_host::StatusNotifierHost,
         status_notifier_watcher::StatusNotifierWatcher,
     },
+    pipewire::{events::PwEvent, run::run_pipewire},
     utils::{
         self,
         hyprland::{get_active_window, get_current_workspaces, init_hyprland},
@@ -30,9 +34,19 @@ pub async fn initialize(app: AppHandle) {
     app.emit("workspaces", serde_json::to_string(&workspaces).unwrap())
         .unwrap();
 
+    let handle = Arc::new(app.clone());
+
+    let (command_tx, handle) = run_pipewire(app.clone());
+
+    let res2 = task::spawn_blocking(move || {
+        handle.join().unwrap();
+    });
+
     {
         let state = app.state::<Mutex<AppState>>();
         let mut state = state.lock().unwrap();
+
+        state.set_pw_sender(command_tx);
 
         if state.is_initialized() {
             return;
@@ -41,10 +55,18 @@ pub async fn initialize(app: AppHandle) {
         state.initialize(workspaces);
     }
 
+    // let aaa = kek(app.clone());
+
+    // let res = task::spawn_blocking(move || {
+    //     aaa.join().unwrap();
+    // });
+
     let _ = join!(
         init_hyprland(app.clone()),
         init_pipewire(app.clone()),
         init_dbus(app.clone()),
+        // res,
+        res2
     );
 }
 

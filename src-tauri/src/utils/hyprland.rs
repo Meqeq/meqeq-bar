@@ -30,7 +30,7 @@ pub async fn get_current_workspaces() -> Vec<WorkspaceInfo> {
     let mut workspaces = Vec::new();
 
     for workspace in Workspaces::get_async().await.unwrap() {
-        println!("{:?}", workspace);
+        // println!("{:?}", workspace);
         workspaces.push(WorkspaceInfo {
             id: workspace.id,
             name: workspace.name,

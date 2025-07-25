@@ -1,56 +1,28 @@
-import { Routes } from "@angular/router";
-import { AppComponent } from "./app.component";
+import { Routes } from '@angular/router';
 
 export const routes: Routes = [
   {
-    path: "",
-    component: AppComponent,
+    path: '',
     children: [
       {
-        path: "bar/:monitor",
+        path: 'bar/:monitor',
         loadComponent: () =>
-          import("./bar/bar.component").then((c) => c.BarComponent),
+          import('./bar/bar.component').then((c) => c.BarComponent),
         children: [
           {
-            path: "calendar",
+            path: 'calendar',
             loadComponent: () =>
-              import("./popup/calendar/calendar.component").then(
+              import('./calendar/calendar.component').then(
                 (c) => c.CalendarComponent,
               ),
           },
           {
-            path: "sound",
+            path: 'sound',
             loadComponent: () =>
-              import("./popup/sound/sound-popup.component").then(
-                (c) => c.SoundPopupComponent,
-              ),
+              import('./sound/sound.component').then((c) => c.SoundComponent),
           },
         ],
       },
     ],
-    // children: [
-    //   {
-    //     path: "popup/calendar",
-    //     loadComponent: () =>
-    //       import("./popup/calendar/calendar.component").then(
-    //         (c) => c.CalendarComponent,
-    //       ),
-    //   },
-    //   {
-    //     path: "popup/:monitor/:type",
-    //     loadComponent: () =>
-    //       import("./popup/popup.component").then((c) => c.PopupComponent),
-    //   },
-    //   {
-    //     path: ":monitor",
-    //     loadComponent: () =>
-    //       import("./bar/bar.component").then((c) => c.BarComponent),
-    //   },
-    //   {
-    //     path: "",
-    //     loadComponent: () =>
-    //       import("./kek/kek.component").then((c) => c.KekComponent),
-    //   },
-    // ],
   },
 ];

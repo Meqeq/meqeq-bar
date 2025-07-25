@@ -1,13 +1,12 @@
-import { DatePipe } from "@angular/common";
-import { Component } from "@angular/core";
-import { toSignal } from "@angular/core/rxjs-interop";
-import { interval, map, startWith } from "rxjs";
-import { PillComponent } from "../../common/pill/pill.component";
+import { DatePipe } from '@angular/common';
+import { Component } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { interval, map, startWith } from 'rxjs';
 
 @Component({
-  selector: "app-clock",
-  templateUrl: "./clock.component.html",
-  imports: [DatePipe, PillComponent],
+  selector: 'app-clock',
+  templateUrl: './clock.component.html',
+  imports: [DatePipe],
 })
 export class ClockComponent {
   readonly time = toSignal(

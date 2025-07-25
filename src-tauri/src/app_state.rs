@@ -1,13 +1,17 @@
 use std::{process, sync::Mutex};
 
 use gtk::ApplicationWindow;
+use pipewire::channel::Sender;
 use serde::{Deserialize, Serialize};
 use tauri::App;
 use zbus::Connection;
 
 use crate::{
-    utils::gtk::{get_monitor_info, make_bar},
-    utils::hyprland::WorkspaceInfo,
+    pipewire::commands::PwCommand,
+    utils::{
+        gtk::{get_monitor_info, make_bar},
+        hyprland::WorkspaceInfo,
+    },
 };
 
 #[derive(Serialize, Deserialize)]
@@ -16,11 +20,13 @@ struct WorkspacesInfo {
     active: i32,
 }
 
-#[derive(Debug)]
 pub struct AppState {
     pub bars: Vec<ApplicationWindow>,
     pub workspaces: Vec<WorkspaceInfo>,
     pub connection: Connection,
+
+    pw_sender: Option<Sender<PwCommand>>,
+
     initialized: bool,
 }
 
@@ -48,6 +54,7 @@ impl AppState {
             workspaces: Vec::new(),
             connection,
             initialized: false,
+            pw_sender: None,
         })
     }
 
@@ -66,5 +73,13 @@ impl AppState {
     pub fn initialize(&mut self, mut workspaces: Vec<WorkspaceInfo>) {
         self.initialized = true;
         self.workspaces.append(&mut workspaces);
+    }
+
+    pub fn set_pw_sender(&mut self, sender: Sender<PwCommand>) {
+        self.pw_sender = Some(sender);
+    }
+
+    pub fn send_pw_message(&self, message: PwCommand) {
+        self.pw_sender.as_ref().unwrap().send(message).unwrap();
     }
 }

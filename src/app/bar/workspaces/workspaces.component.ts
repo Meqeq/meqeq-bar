@@ -1,8 +1,9 @@
-import { Component, input } from "@angular/core";
-import { toSignal } from "@angular/core/rxjs-interop";
-import { invoke } from "@tauri-apps/api/core";
-import { map } from "rxjs";
-import { fromTauriEvent } from "../../common/tauri-utils";
+import { Component, effect, inject } from '@angular/core';
+import { fromTauriEvent } from '../../common/tauri-utils';
+import { rxResource } from '@angular/core/rxjs-interop';
+import { BarService } from '../bar.service';
+import { map } from 'rxjs';
+import { invoke } from '@tauri-apps/api/core';
 
 interface WorkspaceInfo {
   id: number;
@@ -11,37 +12,38 @@ interface WorkspaceInfo {
 }
 
 @Component({
-  selector: "app-workspaces",
-  templateUrl: "./workspaces.component.html",
-  styleUrl: "./workspaces.component.scss",
+  selector: 'app-workspaces',
+  templateUrl: './workspaces.component.html',
 })
 export class WorkspacesComponent {
-  readonly monitor = input.required<number>();
+  private readonly barService = inject(BarService);
+  // readonly activeWorkspace =
+  //   fromTauriEvent("active_workspace_change", 0);
 
-  readonly activeWorkspace = toSignal(
-    fromTauriEvent<number>("active_workspace_change").pipe(
-      map((event) => event.payload),
-    ),
-    { initialValue: 0 },
-  );
+  readonly activeWorkspace = rxResource({
+    stream: () => fromTauriEvent<number>('active_workspace_change'),
+  });
 
-  readonly workspaces = toSignal(
-    fromTauriEvent<WorkspaceInfo[]>("workspaces").pipe(
-      map((event) => event.payload),
-      map((workspaces) =>
-        workspaces.filter(
-          (workspace: any) => workspace.monitor === this.monitor(),
+  readonly workspaces = rxResource({
+    stream: () =>
+      fromTauriEvent<WorkspaceInfo[]>('workspaces').pipe(
+        map((workspaces) =>
+          workspaces.filter((w) => w.monitor === this.barService.monitor()),
         ),
       ),
-      // tap(console.log),
-    ),
-    { initialValue: [] as WorkspaceInfo[] },
-  );
+  });
 
-  ngOnInit(): void { }
+  c = effect(() => {
+    console.log(this.activeWorkspace.value());
+    console.log(this.workspaces.value());
+  });
+
+  // readonly workspaces = fromTauriEvent("workspaces", [] as WorkspaceInfo[])
+
+  // ngOnInit(): void { }
 
   setCurrentWorkspace(id: number): void {
     console.log(id);
-    invoke("set_current_workspace", { id });
+    invoke('set_current_workspace', { id });
   }
 }

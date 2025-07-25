@@ -1,5 +1,4 @@
 use std::fmt;
-use std::io::Write;
 use std::{collections::HashMap, ops::Deref, sync::Mutex};
 
 use serde::{Deserialize, Serialize};
@@ -73,7 +72,6 @@ impl fmt::Debug for KekError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             KekError::NotAStructure => write!(f, "Not a structure"),
-            _ => write!(f, "LEL"),
             KekError::WrongFieldCount(count) => {
                 write!(f, "Wrong field count: {}, expected 3", count)
             }

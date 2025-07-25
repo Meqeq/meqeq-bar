@@ -1,15 +1,14 @@
-<div class="flex text-white items-center gap-1">
-  @for (workspace of workspaces(); track workspace.id) {
+<div class="rounded-[3px] flex gap-2 text-sm font-bold font-mono">
+  @for (workspace of workspaces.value(); track workspace.id) {
     <div
-      class="text-lg leading-none w-10 h-10 p-2 border-2 border-gray-800 rounded-full bg-gray-800 text-center font-bold workspace shadow-lg"
-      [class.cursor-pointer]="workspace.id !== activeWorkspace()"
-      [class.hover:bg-gray-900]="workspace.id !== activeWorkspace()"
-      [class.active]="workspace.id === activeWorkspace()"
-      (click)="
-        workspace.id !== activeWorkspace() && setCurrentWorkspace(workspace.id)
-      "
+      class="rounded-[3px] bg-base-200 hover:bg-base-300 hover:text-success w-6 h-6 leading-6 text-center shadow-sm transition-all duration-300"
+      [class.cursor-pointer]="workspace.id !== activeWorkspace.value()"
+      [class.!bg-primary]="workspace.id === activeWorkspace.value()"
+      [class.!text-primary-content]="workspace.id === activeWorkspace.value()"
+      [class.shadow-primary]="workspace.id === activeWorkspace.value()"
+      (click)="setCurrentWorkspace(workspace.id)"
     >
-      <span>{{ workspace.id }}</span>
+      {{ workspace.id }}
     </div>
   }
 </div>

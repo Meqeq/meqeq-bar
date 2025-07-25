@@ -1,5 +1,13 @@
-<app-pill>
-  <span class="text-lg font-bold"
-    >{{ soundService.defaultVolume() | number: "1.0-0" }} %</span
-  >
-</app-pill>
+<div
+  class="bg-base-200 hover:bg-base-300 hover:text-info rounded-[3px] h-full flex justify-center px-2 items-center cursor-pointer group"
+>
+  <lucide-icon [img]="sinkIcon()" [size]="20" class="-mr-[2px]"></lucide-icon>
+  <div class="max-w-0 group-hover:max-w-10 overflow-hidden transition-all">
+    <div
+      class="text-sm pl-2"
+      [class.text-error]="soundService.defaultVolume() > 100"
+    >
+      {{ soundService.defaultVolume() | number: "1.0-0" }}%
+    </div>
+  </div>
+</div>
