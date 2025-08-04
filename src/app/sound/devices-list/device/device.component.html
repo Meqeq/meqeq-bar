@@ -1,0 +1,37 @@
+<div
+  class="p-2 rounded-md flex flex-col gap-4 hover:bg-base-100 cursor-pointer"
+>
+  {{ device().nick }}
+
+  @if (type() === "config") {
+    <app-combo
+      label="Profil"
+      valueKey="index"
+      displayKey="description"
+      [dataSource]="$any(profileSource)"
+      [rowTemplate]="row"
+    >
+      <ng-template #row let-profile>
+        <div class="flex justify-between items-center">
+          {{ profile.description }}
+
+          @if (!profile.available) {
+            <div class="badge badge-xs badge-neutral">Niedostępny</div>
+          }
+        </div>
+      </ng-template>
+    </app-combo>
+    dawd
+    <!-- @for (route of enumProfiles(); track route.index) { -->
+
+    <!--   {{ route.description }} -->
+
+    <!--   {{ route.available }} -->
+    <!-- } -->
+  }
+</div>
+
+@for (route of enumRoutes(); track route.index) {
+  {{ route.description }}
+  {{ route.available }}
+}

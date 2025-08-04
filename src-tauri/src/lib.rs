@@ -9,7 +9,7 @@ use commands::{
     call_tray_menu_item, initialize, set_current_workspace, set_default, set_layer, set_volume,
 };
 
-use pipewire::commands::{set_default_sink, set_default_source, set_node_props};
+use pipewire::commands::{set_default_sink, set_default_source, set_node_mute, set_node_volume};
 use tauri::{App, Manager};
 
 fn setup<'a>(app: &'a mut App) -> Result<(), Box<dyn std::error::Error>> {
@@ -34,7 +34,8 @@ pub fn run() {
             set_current_workspace,
             set_default_source,
             set_default_sink,
-            set_node_props,
+            set_node_volume,
+            set_node_mute
         ])
         .run(tauri::generate_context!())
         .unwrap();

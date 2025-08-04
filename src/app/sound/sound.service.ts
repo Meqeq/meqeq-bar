@@ -36,6 +36,42 @@ export interface PwNodeProps {
   muted: boolean;
 }
 
+export interface PwDevice {
+  id: number;
+  name: string;
+  nick: string;
+  description: string;
+  alsaName: string;
+  cardName: string;
+  mixerName: string;
+  iconName: string;
+  clientId: number;
+}
+
+export interface PwDeviceProfile {
+  deviceId: number;
+  index: number;
+  name: string;
+  description: string;
+  priority: number;
+  available: boolean;
+  classes: unknown[];
+}
+
+export interface PwDeviceRoute {
+  deviceId: number;
+  index: number;
+  direction: 'input' | 'output' | 'unknown';
+  name: string;
+  description: string;
+  priority: number;
+  available: boolean;
+  profiles: number[];
+  devices: number[];
+  volume: [number, number];
+  mute: boolean;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -50,7 +86,7 @@ export class SoundService {
       fromTauriEvent<number>('pw_node_removed'),
     ).pipe(
       scan((acc, node) => {
-        console.log('NODE', node);
+        // console.log('NODE', node);
         if (typeof node === 'number') acc.delete(node);
         else acc.set(node.id, node);
 
@@ -63,7 +99,7 @@ export class SoundService {
   readonly nodespwprops = toSignal(
     fromTauriEvent<PwNodeProps>('pw_node_props').pipe(
       scan((acc, props) => {
-        console.log('NODE_PROPS', props);
+        // console.log('NODE_PROPS', props);
         acc.set(props.id, props);
 
         return acc;
@@ -82,13 +118,99 @@ export class SoundService {
     { initialValue: { name: '' } },
   );
 
-  e = effect(() => {
-    console.log(this.nodespw());
-  });
+  readonly devices = toSignal(
+    fromTauriEvent<PwDevice>('pw_device').pipe(
+      scan((acc, device) => {
+        acc.set(device.id, device);
 
-  ff = effect(() => {
-    console.log(this.nodespwprops());
-  });
+        return acc;
+      }, new Map<number, PwDevice>()),
+    ),
+    { equal: () => false, initialValue: new Map<number, PwDevice>() },
+  );
+
+  readonly deviceEnumProfiles = toSignal(
+    fromTauriEvent<PwDeviceProfile>('pw_device_enum_profile').pipe(
+      scan((acc, profile) => {
+        if (acc.has(profile.deviceId)) {
+          acc.get(profile.deviceId)?.set(profile.index, profile);
+        } else {
+          const map = new Map<number, PwDeviceProfile>();
+          map.set(profile.index, profile);
+          acc.set(profile.deviceId, map);
+        }
+
+        return acc;
+      }, new Map<number, Map<number, PwDeviceProfile>>()),
+    ),
+    {
+      equal: () => false,
+      initialValue: new Map<number, Map<number, PwDeviceProfile>>(),
+    },
+  );
+
+  readonly deviceEnumRoutes = toSignal(
+    fromTauriEvent<PwDeviceRoute>('pw_device_enum_route').pipe(
+      scan((acc, route) => {
+        console.log('ENUM ROUTE', route);
+        if (acc.has(route.deviceId)) {
+          acc.get(route.deviceId)?.set(route.index, route);
+        } else {
+          const map = new Map<number, PwDeviceRoute>();
+          map.set(route.index, route);
+          acc.set(route.deviceId, map);
+        }
+
+        return acc;
+      }, new Map<number, Map<number, PwDeviceRoute>>()),
+    ),
+    {
+      equal: () => false,
+      initialValue: new Map<number, Map<number, PwDeviceRoute>>(),
+    },
+  );
+
+  readonly deviceProfiles = toSignal(
+    fromTauriEvent<PwDeviceProfile>('pw_device_profile').pipe(
+      scan((acc, profile) => {
+        console.log('PROFILE', profile);
+        if (acc.has(profile.deviceId)) {
+          acc.get(profile.deviceId)?.set(profile.index, profile);
+        } else {
+          const map = new Map<number, PwDeviceProfile>();
+          map.set(profile.index, profile);
+          acc.set(profile.deviceId, map);
+        }
+
+        return acc;
+      }, new Map<number, Map<number, PwDeviceProfile>>()),
+    ),
+    {
+      equal: () => false,
+      initialValue: new Map<number, Map<number, PwDeviceProfile>>(),
+    },
+  );
+
+  readonly deviceRoutes = toSignal(
+    fromTauriEvent<PwDeviceRoute>('pw_device_route').pipe(
+      scan((acc, route) => {
+        console.log('ROUTE', route);
+        if (acc.has(route.deviceId)) {
+          acc.get(route.deviceId)?.set(route.index, route);
+        } else {
+          const map = new Map<number, PwDeviceRoute>();
+          map.set(route.index, route);
+          acc.set(route.deviceId, map);
+        }
+
+        return acc;
+      }, new Map<number, Map<number, PwDeviceRoute>>()),
+    ),
+    {
+      equal: () => false,
+      initialValue: new Map<number, Map<number, PwDeviceRoute>>(),
+    },
+  );
 
   readonly nodes = toSignal(
     fromTauriEvent<PipeWireNode>('pipewire_node').pipe(

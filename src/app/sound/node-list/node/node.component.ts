@@ -87,15 +87,25 @@ export class NodeComponent {
   }
 
   changeVolume() {
-    invoke('set_node_props', {
+    invoke('set_node_volume', {
       id: this.node().id,
       channelVolumes: [this.value(), this.value()],
-      mute: false,
+    });
+  }
+
+  changeMute() {
+    invoke('set_node_mute', {
+      id: this.node().id,
+      mute: !this.props().muted,
     });
   }
 
   readonly icons = {
     ['sink' as NodeType]: {
+      muted: VolumeOff,
+      unmuted: Volume2,
+    },
+    ['stream' as NodeType]: {
       muted: VolumeOff,
       unmuted: Volume2,
     },

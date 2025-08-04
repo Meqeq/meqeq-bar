@@ -64,7 +64,7 @@ pub async fn initialize(app: AppHandle) {
     let _ = join!(
         init_hyprland(app.clone()),
         init_pipewire(app.clone()),
-        init_dbus(app.clone()),
+        // init_dbus(app.clone()),
         // res,
         res2
     );

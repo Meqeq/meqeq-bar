@@ -17,7 +17,7 @@ use super::{
     events::{PwEvent, PwNode, PwNodeProps},
 };
 
-fn pw2ui(volume: f32) -> f32 {
+pub fn pw2ui(volume: f32) -> f32 {
     volume.clamp(0.0, 1.0).powf(1.0 / 3.0)
 }
 

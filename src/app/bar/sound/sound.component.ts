@@ -15,14 +15,14 @@ import { DecimalPipe } from '@angular/common';
   imports: [LucideAngularModule, DecimalPipe],
 })
 export class SoundComponent {
-  readonly soundService = inject(SoundService);
+  // readonly soundService = inject(SoundService);
 
   readonly sinkIcon = computed(() => {
-    if (this.soundService.defaultSink()?.muted) return VolumeOff;
+    // if (this.soundService.defaultSink()?.muted) return VolumeOff;
 
-    if (this.soundService.defaultVolume() > 50) return Volume2;
+    // if (this.soundService.defaultVolume() > 50) return Volume2;
 
-    if (this.soundService.defaultVolume() > 10) return Volume1;
+    // if (this.soundService.defaultVolume() > 10) return Volume1;
 
     return Volume;
   });

@@ -1,0 +1,63 @@
+<fieldset tabindex="-1" class="fieldset w-full">
+  <legend class="fieldset-legend">{{ label() }}</legend>
+  <div class="dropdown dropdown-top">
+    <label class="w-full input input-sm group p-0">
+      <input
+        type="text"
+        class="group-not-focus-within:text-base-100 px-2"
+        [(ngModel)]="search"
+        (focus)="scrollToTop()"
+      />
+
+      <div
+        class="absolute text-sm group-focus-within:hidden w-full overflow-hidden text-ellipsis px-2"
+      >
+        @if (selected()) {
+          {{ $any(selected())[displayKey()] }}
+        }
+      </div>
+    </label>
+
+    <div
+      #scrollContainer
+      class="dropdown-content menu bg-base-200 min-w-full rounded-box z-1 p-2 shadow-sm max-h-84 flex-nowrap"
+    >
+      <ul tabindex="0" class="flex-nowrap overflow-y-auto">
+        @for (item of $any(items()); track item[valueKey()]) {
+          <li #item>
+            <a
+              class="block"
+              [class.menu-active]="item[valueKey()] === value()"
+              (click)="handleSelect(item)"
+            >
+              @if (rowTemplate()) {
+                <ng-container
+                  *ngTemplateOutlet="
+                    rowTemplate();
+                    context: {
+                      $implicit: item,
+                      index: $index,
+                    }
+                  "
+                ></ng-container>
+              } @else {
+                {{ item.name }}
+              }
+            </a>
+          </li>
+        } @empty {
+          <li>
+            <a class="text-center">Pusto</a>
+          </li>
+        }
+      </ul>
+
+      @if (actionButton()) {
+        <hr class="my-1" />
+        <button class="btn btn-sm btn-ghost" (click)="actionButtonClick.emit()">
+          {{ actionButton() }}
+        </button>
+      }
+    </div>
+  </div>
+</fieldset>

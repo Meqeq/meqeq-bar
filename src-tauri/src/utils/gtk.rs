@@ -3,7 +3,7 @@ use gtk::{
     prelude::{ContainerExt, GtkWindowExt, MonitorExt, WidgetExt},
     ApplicationWindow,
 };
-use gtk_layer_shell::{Edge, Layer, LayerShell};
+use gtk_layer_shell::{Edge, KeyboardMode, Layer, LayerShell};
 use tauri::{App, WebviewUrl, WebviewWindowBuilder};
 
 #[derive(Debug)]
@@ -60,6 +60,8 @@ pub fn make_bar(app: &App, monitor: &MonitorInfo) -> ApplicationWindow {
     gtk_window.init_layer_shell();
     gtk_window.set_layer(Layer::Bottom);
     gtk_window.set_anchor(Edge::Bottom, true);
+
+    gtk_window.set_keyboard_mode(KeyboardMode::OnDemand);
 
     gtk_window.set_exclusive_zone(50);
     gtk_window.set_height_request(monitor.height);

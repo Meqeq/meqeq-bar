@@ -27,7 +27,7 @@
   <div class="w-10">
     <button
       class="btn w-10 h-10 mb-1 rounded-sm flex justify-center items-center"
-      (click)="changeVolume(); $event.stopPropagation()"
+      (click)="changeMute(); $event.stopPropagation()"
     >
       <lucide-icon
         [img]="props().muted ? icons[type()].muted : icons[type()].unmuted"

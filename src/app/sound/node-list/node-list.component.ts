@@ -1,11 +1,12 @@
 import { Component, computed, effect, inject, input } from '@angular/core';
 import { SoundService } from '../sound.service';
 import { NodeComponent, NodeType } from './node/node.component';
+import { JsonPipe } from '@angular/common';
 
 @Component({
   selector: 'app-node-list',
   templateUrl: './node-list.component.html',
-  imports: [NodeComponent],
+  imports: [NodeComponent, JsonPipe],
 })
 export class NodeListComponent {
   private readonly soundService = inject(SoundService);

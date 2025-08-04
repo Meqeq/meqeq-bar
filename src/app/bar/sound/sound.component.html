@@ -3,11 +3,9 @@
 >
   <lucide-icon [img]="sinkIcon()" [size]="20" class="-mr-[2px]"></lucide-icon>
   <div class="max-w-0 group-hover:max-w-10 overflow-hidden transition-all">
-    <div
-      class="text-sm pl-2"
-      [class.text-error]="soundService.defaultVolume() > 100"
-    >
-      {{ soundService.defaultVolume() | number: "1.0-0" }}%
+    <div class="text-sm pl-2">
+      <!--       [class.text-error]="soundService.defaultVolume() > 100" -->
+      <!-- {{ soundService.defaultVolume() | number: "1.0-0" }}% -->
     </div>
   </div>
 </div>
