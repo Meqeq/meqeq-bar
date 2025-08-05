@@ -7,7 +7,7 @@ import {
   input,
   signal,
 } from '@angular/core';
-import { PwDevice } from '../sound-new.schema';
+import { PwDevice, PwDeviceRoute } from '../sound-new.schema';
 import { SoundNewService } from '../sound-new.service';
 import { JsonPipe } from '@angular/common';
 import { ComboComponent } from '../../common/combo/combo.component';
@@ -15,10 +15,13 @@ import { ComboComponent } from '../../common/combo/combo.component';
 import { FormsModule } from '@angular/forms';
 import {
   LucideAngularModule,
+  Mic,
+  MicOff,
   Settings,
   Volume2,
   VolumeOff,
 } from 'lucide-angular';
+import { invoke } from '@tauri-apps/api/core';
 
 @Component({
   selector: 'app-device',
@@ -63,9 +66,7 @@ export class DeviceComponent {
 
   constructor() {
     effect(() => {
-      for (let kek of this.enumRoutes()) {
-        console.log(kek);
-      }
+      // this.soundService.deviceEnumProfiles();
     });
 
     effect(() => {
@@ -78,13 +79,45 @@ export class DeviceComponent {
     });
   }
 
+  changeMute(): void {
+    invoke('set_device_mute', {
+      id: this.device().id,
+      routeIndex: this.currentRoute()?.index,
+      routeDevice: this.currentRoute()?.devices[0],
+      mute: !this.currentRoute()?.mute,
+    });
+  }
+
   changeVolume(): void {
-    console.log('CHANGE');
+    invoke('set_device_volume', {
+      id: this.device().id,
+      routeIndex: this.currentRoute()?.index,
+      routeDevice: this.currentRoute()?.devices[0],
+      channelVolumes: [this.value(), this.value()],
+    });
+  }
+
+  changeRoute(route: PwDeviceRoute): void {
+    if (this.currentRoute()?.index === route.index) return;
+
+    invoke('set_device_route', {
+      id: this.device().id,
+      routeIndex: route.index,
+      routeDevice: route.devices[0],
+      channelVolumes: [this.value(), this.value()],
+    });
   }
 
   readonly icons = {
-    muted: VolumeOff,
-    unmuted: Volume2,
+    input: {
+      muted: MicOff,
+      unmuted: Mic,
+    },
+    output: {
+      muted: VolumeOff,
+      unmuted: Volume2,
+    },
+
     settings: Settings,
-  };
+  } as const;
 }

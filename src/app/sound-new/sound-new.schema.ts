@@ -23,3 +23,28 @@ export interface PwDeviceRoute {
   volume: [number, number];
   mute: boolean;
 }
+
+export interface PwDeviceProfile {
+  index: number;
+  name: string;
+  deviceId: number;
+  description: string;
+  priority: number;
+  available: boolean;
+  classes: string[];
+}
+
+export interface PwNode {
+  id: number;
+  type: string;
+  nick: string;
+  name: string;
+  class: string;
+  description: string;
+}
+
+export interface PwNodeProps {
+  id: number;
+  volume: [number, number];
+  muted: boolean;
+}

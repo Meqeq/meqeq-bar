@@ -1,6 +1,8 @@
-import { Component, effect, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { SoundNewService } from './sound-new.service';
 import { DeviceComponent } from './device/device.component';
+import { NodeComponent } from './node/node.component';
+import { DeviceConfigComponent } from './device-config/device-config.component';
 
 const menuOptions = [
   'output',
@@ -15,7 +17,7 @@ type MenuOption = (typeof menuOptions)[number];
 @Component({
   selector: 'app-sound-new',
   templateUrl: './sound-new.component.html',
-  imports: [DeviceComponent],
+  imports: [DeviceComponent, NodeComponent, DeviceConfigComponent],
 })
 export class SoundNewComponent {
   readonly soundService = inject(SoundNewService);
@@ -29,6 +31,22 @@ export class SoundNewComponent {
     { value: 'recording', label: 'Nagrywanie' },
     { value: 'config', label: 'Konfiguracja' },
   ] as const;
+
+  readonly playbacks = computed(() => {
+    return this.soundService
+      .nodes()
+      .values()
+      .filter((node) => node.class === 'Stream/Output/Audio')
+      .toArray();
+  });
+
+  readonly recordings = computed(() => {
+    return this.soundService
+      .nodes()
+      .values()
+      .filter((node) => node.class === 'Stream/Input/Audio')
+      .toArray();
+  });
 
   constructor() {
     effect(() => {

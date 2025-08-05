@@ -19,19 +19,6 @@ use super::{
     node::pw2ui,
 };
 
-// #[derive(Debug)]
-// pub struct DeviceEnumRoute {
-//     pub id: u32,
-//     pub index: i32,
-//     pub direction: DeviceRouteDirection,
-//     pub name: String,
-//     pub description: String,
-//     pub priority: i32,
-//     pub available: bool,
-//     pub profiles: Vec<i32>,
-//     pub devices: Vec<i32>,
-// }
-
 fn parse_media_class(prop: Property) -> Vec<PwMediaClass> {
     let result = vec![];
 

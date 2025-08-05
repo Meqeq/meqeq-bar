@@ -1,0 +1,30 @@
+<li class="list-row block">
+  <div class="flex">
+    <div class="flex-1">
+      <div>{{ device().description }}</div>
+      <div class="text-xs uppercase font-semibold opacity-60">
+        {{ device().mixerName }}
+      </div>
+    </div>
+    <div class="flex-1">
+      <app-combo
+        valueKey="index"
+        displayKey="description"
+        [items]="enumProfiles()"
+        [rowTemplate]="row"
+        [(ngModel)]="profileControl"
+        (selectedChange)="changeProfile($event)"
+      >
+        <ng-template #row let-profile>
+          <div class="flex justify-between items-center">
+            {{ profile.description }}
+
+            @if (!profile.available) {
+              <div class="badge badge-xs badge-neutral">Niedostępny</div>
+            }
+          </div>
+        </ng-template>
+      </app-combo>
+    </div>
+  </div>
+</li>

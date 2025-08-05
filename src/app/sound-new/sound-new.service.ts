@@ -1,8 +1,14 @@
 import { Injectable } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { PwDevice, PwDeviceRoute } from './sound-new.schema';
+import {
+  PwDevice,
+  PwDeviceProfile,
+  PwDeviceRoute,
+  PwNode,
+  PwNodeProps,
+} from './sound-new.schema';
 import { fromTauriEvent } from '../common/tauri-utils';
-import { scan, tap } from 'rxjs';
+import { merge, scan } from 'rxjs';
 
 interface EnumRoutes {
   input: Map<number, PwDeviceRoute>;
@@ -18,6 +24,33 @@ interface CurrentRoutes {
   providedIn: 'root',
 })
 export class SoundNewService {
+  readonly nodes = toSignal(
+    merge(
+      fromTauriEvent<PwNode>('pw_node'),
+      fromTauriEvent<number>('pw_node_removed'),
+    ).pipe(
+      scan((acc, node) => {
+        // console.log('NODE', node);
+        if (typeof node === 'number') acc.delete(node);
+        else acc.set(node.id, node);
+
+        return acc;
+      }, new Map<number, PwNode>()),
+    ),
+    { equal: () => false, initialValue: new Map<number, PwNode>() },
+  );
+
+  readonly nodesProps = toSignal(
+    fromTauriEvent<PwNodeProps>('pw_node_props').pipe(
+      scan((acc, props) => {
+        acc.set(props.id, props);
+
+        return acc;
+      }, new Map<number, PwNodeProps>()),
+    ),
+    { equal: () => false, initialValue: new Map<number, PwNodeProps>() },
+  );
+
   readonly devices = toSignal(
     fromTauriEvent<PwDevice>('pw_device').pipe(
       scan((acc, device) => {
@@ -52,6 +85,28 @@ export class SoundNewService {
     { equal: () => false, initialValue: new Map<number, EnumRoutes>() },
   );
 
+  readonly deviceEnumProfiles = toSignal(
+    fromTauriEvent<PwDeviceProfile>('pw_device_enum_profile').pipe(
+      scan((acc, enumProfile) => {
+        let current = acc.get(enumProfile.deviceId);
+
+        if (!current) {
+          current = new Map<number, PwDeviceProfile>();
+
+          acc.set(enumProfile.deviceId, current);
+        }
+
+        current.set(enumProfile.index, enumProfile);
+
+        return acc;
+      }, new Map<number, Map<number, PwDeviceProfile>>()),
+    ),
+    {
+      equal: () => false,
+      initialValue: new Map<number, Map<number, PwDeviceProfile>>(),
+    },
+  );
+
   readonly deviceRoute = toSignal(
     fromTauriEvent<PwDeviceRoute>('pw_device_route').pipe(
       scan((acc, route) => {
@@ -71,5 +126,16 @@ export class SoundNewService {
       }, new Map<number, CurrentRoutes>()),
     ),
     { equal: () => false, initialValue: new Map<number, CurrentRoutes>() },
+  );
+
+  readonly deviceProfile = toSignal(
+    fromTauriEvent<PwDeviceProfile>('pw_device_profile').pipe(
+      scan((acc, route) => {
+        acc.set(route.deviceId, route);
+
+        return acc;
+      }, new Map<number, PwDeviceProfile>()),
+    ),
+    { equal: () => false, initialValue: new Map<number, PwDeviceProfile>() },
   );
 }

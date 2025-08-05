@@ -23,8 +23,11 @@ use tauri::{AppHandle, Emitter};
 use crate::pipewire::{device::handle_pipewire_device, node::ui2pw};
 
 use super::{
-    commands::PwCommand, events::PwEvent, metadata::handle_pipewire_metadata,
+    commands::PwCommand,
+    events::PwEvent,
+    metadata::handle_pipewire_metadata,
     node::handle_pipewire_node,
+    utils::{device_set_profile, device_set_route_properties},
 };
 
 fn init() -> (Rc<MainLoop>, Rc<Registry>, Rc<Context>, Rc<Core>) {
@@ -82,7 +85,7 @@ fn handle_global(
 }
 
 pub fn pipewire_main_loop(command_receiver: Receiver<PwCommand>, app: AppHandle) {
-    let (mainloop, registry, context, core) = init();
+    let (mainloop, registry, _context, _core) = init();
     let (event_tx, event_rx): (Sender<PwEvent>, Receiver<PwEvent>) = channel();
 
     let registry_weak = Rc::downgrade(&registry);
@@ -185,6 +188,7 @@ pub fn pipewire_main_loop(command_receiver: Receiver<PwCommand>, app: AppHandle)
     });
 
     let nodes_ref = Rc::clone(&nodes);
+    let devices_ref = Rc::clone(&devices);
     let metadata_ref = Rc::clone(&metadata);
 
     let _lel = command_receiver.attach(mainloop.loop_(), move |command| match command {
@@ -260,6 +264,58 @@ pub fn pipewire_main_loop(command_receiver: Receiver<PwCommand>, app: AppHandle)
                 let pod = Pod::from_bytes(v).unwrap();
 
                 node.set_param(ParamType::Props, 0, pod);
+            }
+        }
+        PwCommand::SetDeviceVolume(id, route_index, route_device, volume) => {
+            let devices = devices_ref.borrow();
+            let device = devices.get(&id);
+
+            if let Some(device) = device {
+                let b = vec![ui2pw(volume[0]), ui2pw(volume[1])];
+
+                device_set_route_properties(
+                    &device,
+                    route_index,
+                    route_device,
+                    vec![Property {
+                        key: libspa_sys::SPA_PROP_channelVolumes,
+                        flags: PropertyFlags::empty(),
+                        value: Value::ValueArray(ValueArray::Float(b.clone())),
+                    }],
+                )
+            }
+        }
+        PwCommand::SetDeviceMute(id, route_index, route_device, mute) => {
+            let devices = devices_ref.borrow();
+            let device = devices.get(&id);
+
+            if let Some(device) = device {
+                device_set_route_properties(
+                    &device,
+                    route_index,
+                    route_device,
+                    vec![Property {
+                        key: libspa_sys::SPA_PROP_mute,
+                        flags: PropertyFlags::empty(),
+                        value: Value::Bool(mute),
+                    }],
+                )
+            }
+        }
+        PwCommand::SetDeviceRoute(id, route_index, route_device) => {
+            let devices = devices_ref.borrow();
+            let device = devices.get(&id);
+
+            if let Some(device) = device {
+                device_set_route_properties(&device, route_index, route_device, vec![])
+            }
+        }
+        PwCommand::SetDeviceProfile(id, profile_index) => {
+            let devices = devices_ref.borrow();
+            let device = devices.get(&id);
+
+            if let Some(device) = device {
+                device_set_profile(&device, profile_index)
             }
         }
     });

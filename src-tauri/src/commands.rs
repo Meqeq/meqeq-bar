@@ -1,8 +1,5 @@
 use gtk_layer_shell::{Layer, LayerShell};
-use std::{
-    borrow::Borrow,
-    sync::{Arc, Mutex},
-};
+use std::sync::{Arc, Mutex};
 use tauri::{command, AppHandle, Emitter, Manager};
 use tokio::{join, task};
 use zbus::zvariant::Value;
@@ -13,7 +10,7 @@ use crate::{
         dbus_menu::DbusMenuProxy, status_notifier_host::StatusNotifierHost,
         status_notifier_watcher::StatusNotifierWatcher,
     },
-    pipewire::{events::PwEvent, run::run_pipewire},
+    pipewire::run::run_pipewire,
     utils::{
         self,
         hyprland::{get_active_window, get_current_workspaces, init_hyprland},
@@ -33,8 +30,6 @@ pub async fn initialize(app: AppHandle) {
 
     app.emit("workspaces", serde_json::to_string(&workspaces).unwrap())
         .unwrap();
-
-    let handle = Arc::new(app.clone());
 
     let (command_tx, handle) = run_pipewire(app.clone());
 

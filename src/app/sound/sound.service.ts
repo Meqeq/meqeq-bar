@@ -1,4 +1,4 @@
-import { computed, effect, Injectable } from '@angular/core';
+import { computed, Injectable } from '@angular/core';
 import { rxResource, toSignal } from '@angular/core/rxjs-interop';
 import { merge, scan, startWith, tap } from 'rxjs';
 import { fromTauriEvent } from '../common/tauri-utils';

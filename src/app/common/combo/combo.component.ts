@@ -20,7 +20,7 @@ import {
 } from '@angular/forms';
 import { LucideAngularModule, Search } from 'lucide-angular';
 import { DataSource } from '../data-source';
-import { debounceTime, fromEvent, scan, Subscription, tap } from 'rxjs';
+import { debounceTime, fromEvent, scan, Subscription } from 'rxjs';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { NgTemplateOutlet } from '@angular/common';
 import { SimpleDataSource } from '../simple-data-source';
