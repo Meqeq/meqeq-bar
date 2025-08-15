@@ -61,8 +61,6 @@ pub fn make_bar(app: &App, monitor: &MonitorInfo) -> ApplicationWindow {
     gtk_window.set_layer(Layer::Bottom);
     gtk_window.set_anchor(Edge::Bottom, true);
 
-    gtk_window.set_keyboard_mode(KeyboardMode::OnDemand);
-
     gtk_window.set_exclusive_zone(50);
     gtk_window.set_height_request(monitor.height);
     gtk_window.set_width_request(monitor.width);

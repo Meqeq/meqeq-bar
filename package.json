@@ -6,7 +6,9 @@
     "dev": "ng serve",
     "start": "LD_LIBRARY_PATH=/usr/local/lib tauri dev",
     "start2": "WEBKIT_DISABLE_DMABUF_RENDERER=1 tauri dev",
-    "build": "ng build",
+    "build": "tauri build",
+    "build:angular": "ng build",
+    "build:arch": "cd src-tauri/target/release/bundle/deb && debtap meqeq-bar_0.1.0_amd64.deb",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },

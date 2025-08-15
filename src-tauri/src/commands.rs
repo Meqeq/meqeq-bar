@@ -1,4 +1,4 @@
-use gtk_layer_shell::{Layer, LayerShell};
+use gtk_layer_shell::{KeyboardMode, Layer, LayerShell};
 use std::sync::{Arc, Mutex};
 use tauri::{command, AppHandle, Emitter, Manager};
 use tokio::{join, task};
@@ -14,7 +14,6 @@ use crate::{
     utils::{
         self,
         hyprland::{get_active_window, get_current_workspaces, init_hyprland},
-        pipewire::init_pipewire,
     },
 };
 
@@ -58,7 +57,7 @@ pub async fn initialize(app: AppHandle) {
 
     let _ = join!(
         init_hyprland(app.clone()),
-        init_pipewire(app.clone()),
+        // init_pipewire(app.clone()),
         // init_dbus(app.clone()),
         // res,
         res2
@@ -74,8 +73,10 @@ pub async fn set_layer(app: AppHandle, bar: usize, layer: String) {
         let window = state.bars.get(bar).unwrap();
 
         if layer == "top" {
+            window.set_keyboard_mode(KeyboardMode::OnDemand);
             window.set_layer(Layer::Top);
         } else {
+            window.set_keyboard_mode(KeyboardMode::None);
             window.set_layer(Layer::Bottom);
         }
     })
@@ -84,12 +85,12 @@ pub async fn set_layer(app: AppHandle, bar: usize, layer: String) {
 
 #[command]
 pub async fn set_volume(id: u32, volume: f32) {
-    utils::pipewire::set_volume(id, volume).await;
+    // utils::pipewire::set_volume(id, volume).await;
 }
 
 #[command]
 pub async fn set_default(id: u32) {
-    utils::pipewire::set_default(id).await;
+    // utils::pipewire::set_default(id).await;
 }
 
 #[tauri::command]

@@ -1,12 +1,12 @@
 <div
   class="w-screen h-screen flex flex-col justify-end items-end p-2 gap-2 relative"
 >
-  <!-- @if (barService.isPopupOpen()) { -->
-  <!--   <div -->
-  <!--     class="absolute w-full h-full top-0 left-0" -->
-  <!--     (click)="barService.closePopup()" -->
-  <!--   ></div> -->
-  <!-- } -->
+  @if (barService.isPopupOpen()) {
+    <div
+      class="absolute w-full h-full top-0 left-0"
+      (click)="barService.closePopup()"
+    ></div>
+  }
 
   <div class="relative z-1000">
     <router-outlet></router-outlet>

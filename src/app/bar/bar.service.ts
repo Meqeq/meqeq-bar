@@ -24,13 +24,13 @@ export class BarService {
   openPopup(event: MouseEvent, name: string): void {
     event.stopPropagation();
 
-    // invoke('set_layer', {
-    //   layer: 'top',
-    //   bar: this.monitor(),
-    // }).then(() => {
-    this.isPopupOpen.set(true);
-    this.router.navigate([name], { relativeTo: this.route });
-    // });
+    invoke('set_layer', {
+      layer: 'top',
+      bar: this.monitor(),
+    }).then(() => {
+      this.isPopupOpen.set(true);
+      this.router.navigate([name], { relativeTo: this.route });
+    });
   }
 
   closePopup(): void {
