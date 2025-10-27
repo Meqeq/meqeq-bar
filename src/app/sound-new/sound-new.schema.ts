@@ -40,6 +40,7 @@ export interface PwNode {
   nick: string;
   name: string;
   class: string;
+  deviceId: number;
   description: string;
 }
 
@@ -47,4 +48,8 @@ export interface PwNodeProps {
   id: number;
   volume: [number, number];
   muted: boolean;
+}
+
+export interface PwDefault {
+  name: string;
 }

@@ -39,7 +39,7 @@ pub async fn set_default_sink(sink: String, app: AppHandle) {
     {
         let state = app.state::<Mutex<AppState>>();
         let state = state.lock().unwrap();
-
+        println!("DADADADA {:?}", sink);
         state.send_pw_message(PwCommand::SetDefaultSink(sink));
     }
 }

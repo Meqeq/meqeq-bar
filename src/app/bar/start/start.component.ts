@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { invoke } from '@tauri-apps/api/core';
 import { Grip, LucideAngularModule } from 'lucide-angular';
 
 @Component({
@@ -8,4 +9,8 @@ import { Grip, LucideAngularModule } from 'lucide-angular';
 })
 export class StartComponent {
   readonly startIcon = Grip;
+
+  show(): void {
+    invoke('run_menu');
+  }
 }

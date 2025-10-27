@@ -21,9 +21,13 @@
       <app-workspaces></app-workspaces>
     </div>
 
+    <div class="text-sm">{{ activeWindow() }}</div>
+
     <div class="flex-1 flex justify-end gap-4">
       <app-sound (click)="barService.openPopup($event, 'sound')"></app-sound>
+      <app-ethernet></app-ethernet>
       <app-clock (click)="barService.openPopup($event, 'calendar')"></app-clock>
+
       <div class="divider divider-horizontal -mx-2"></div>
       <app-power-menu></app-power-menu>
     </div>

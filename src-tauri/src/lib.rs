@@ -5,9 +5,7 @@ mod pipewire;
 mod utils;
 
 use app_state::AppState;
-use commands::{
-    call_tray_menu_item, initialize, set_current_workspace, set_default, set_layer, set_volume,
-};
+use commands::{call_tray_menu_item, initialize, run_menu, set_current_workspace, set_layer};
 
 use pipewire::commands::{
     set_default_sink, set_default_source, set_device_mute, set_device_profile, set_device_route,
@@ -31,8 +29,6 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             initialize,
             set_layer,
-            set_volume,
-            set_default,
             call_tray_menu_item,
             set_current_workspace,
             set_default_source,
@@ -42,7 +38,8 @@ pub fn run() {
             set_device_volume,
             set_device_mute,
             set_device_route,
-            set_device_profile
+            set_device_profile,
+            run_menu
         ])
         .run(tauri::generate_context!())
         .unwrap();

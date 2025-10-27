@@ -1,6 +1,7 @@
-import { Injectable } from '@angular/core';
+import { computed, Injectable } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import {
+  PwDefault,
   PwDevice,
   PwDeviceProfile,
   PwDeviceRoute,
@@ -8,7 +9,7 @@ import {
   PwNodeProps,
 } from './sound-new.schema';
 import { fromTauriEvent } from '../common/tauri-utils';
-import { merge, scan } from 'rxjs';
+import { map, merge, scan, tap } from 'rxjs';
 
 interface EnumRoutes {
   input: Map<number, PwDeviceRoute>;
@@ -137,5 +138,35 @@ export class SoundNewService {
       }, new Map<number, PwDeviceProfile>()),
     ),
     { equal: () => false, initialValue: new Map<number, PwDeviceProfile>() },
+  );
+
+  readonly defaultSinkName = toSignal(
+    fromTauriEvent<PwDefault>('pw_default_sink').pipe(
+      map((res) => {
+        console.log(res);
+
+        return res.name;
+      }),
+    ),
+  );
+
+  readonly defaultSinkDevice = computed(() => {
+    console.log(this.devices(), this.defaultSinkName());
+
+    console.log(this.nodes());
+    let defaultNode: PwNode | undefined;
+    this.nodes().forEach((node) => {
+      if (node.name === this.defaultSinkName()) defaultNode = node;
+    });
+
+    if (!defaultNode) return null;
+
+    const defaultDevice = this.devices().get(defaultNode.deviceId);
+    console.log(defaultDevice);
+    return defaultDevice;
+  });
+
+  readonly defaultSource = toSignal(
+    fromTauriEvent<PwDefault>('pw_default_source').pipe(map((res) => res.name)),
   );
 }

@@ -1,5 +1,5 @@
 use gtk_layer_shell::{KeyboardMode, Layer, LayerShell};
-use std::sync::{Arc, Mutex};
+use std::{process::Command, sync::Mutex};
 use tauri::{command, AppHandle, Emitter, Manager};
 use tokio::{join, task};
 use zbus::zvariant::Value;
@@ -83,15 +83,15 @@ pub async fn set_layer(app: AppHandle, bar: usize, layer: String) {
     .unwrap();
 }
 
-#[command]
-pub async fn set_volume(id: u32, volume: f32) {
-    // utils::pipewire::set_volume(id, volume).await;
-}
+// #[command]
+// pub async fn set_volume(id: u32, volume: f32) {
+//     // utils::pipewire::set_volume(id, volume).await;
+// }
 
-#[command]
-pub async fn set_default(id: u32) {
-    // utils::pipewire::set_default(id).await;
-}
+// #[command]
+// pub async fn set_default(id: u32) {
+//     // utils::pipewire::set_default(id).await;
+// }
 
 #[tauri::command]
 pub fn set_current_workspace(id: i32, app: AppHandle) {
@@ -118,4 +118,11 @@ pub async fn init_dbus(app: AppHandle) {
     let notifier_host = StatusNotifierHost::connect(app).await;
 
     join!(StatusNotifierWatcher::serve(), notifier_host.serve());
+}
+
+#[command]
+pub async fn run_menu() {
+    let _ = Command::new("rofi")
+        .args(["-show", "drun", "-show-icons"])
+        .output();
 }

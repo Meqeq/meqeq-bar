@@ -120,6 +120,7 @@ pub fn pipewire_main_loop(command_receiver: Receiver<PwCommand>, app: AppHandle)
                         .push(Listener::Proxy(proxy_listener));
                 }
                 HandleResult::Metadata((metadata, listener)) => {
+                    println!("DDDD {:?}", metadata);
                     *metadata_ref.borrow_mut() = Some(metadata);
                     listeners_ref
                         .borrow_mut()
@@ -194,6 +195,7 @@ pub fn pipewire_main_loop(command_receiver: Receiver<PwCommand>, app: AppHandle)
     let _lel = command_receiver.attach(mainloop.loop_(), move |command| match command {
         PwCommand::SetDefaultSink(sink) => {
             if let Some(metadata) = metadata_ref.borrow().as_ref() {
+                println!("DDDDDDD");
                 metadata.set_property(
                     0,
                     "default.audio.sink",

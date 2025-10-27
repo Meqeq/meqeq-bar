@@ -98,6 +98,17 @@ async fn on_workspace_add(app: AppHandle) {
         serde_json::to_string(&state.workspaces).unwrap(),
     )
     .unwrap();
+
+    app.emit("active_workspace_change", workspace.id).unwrap();
+    app.emit(
+        "active_window_change",
+        serde_json::to_string(&ActiveWindow {
+            class: "".to_string(),
+            title: "".to_string(),
+        })
+        .unwrap(),
+    )
+    .unwrap();
 }
 
 async fn on_workspace_remove(data: WorkspaceEventData, app: AppHandle) {

@@ -23,6 +23,7 @@ pub fn handle_pipewire_metadata(
                 .property({
                     let sender = Rc::clone(&event_sender);
                     move |_subject, key, _type_, value| {
+                        println!("DDDDDDDDDDDD {:?} {:?}", key, value);
                         match key.unwrap_or("") {
                             "default.audio.sink" => {
                                 sender

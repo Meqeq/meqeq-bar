@@ -1,5 +1,5 @@
 import { Component, computed, inject } from '@angular/core';
-import { SoundService } from '../../sound/sound.service';
+
 import {
   LucideAngularModule,
   Volume,
@@ -8,6 +8,7 @@ import {
   VolumeOff,
 } from 'lucide-angular';
 import { DecimalPipe } from '@angular/common';
+import { SoundNewService } from '../../sound-new/sound-new.service';
 
 @Component({
   selector: 'app-sound',
@@ -15,14 +16,26 @@ import { DecimalPipe } from '@angular/common';
   imports: [LucideAngularModule, DecimalPipe],
 })
 export class SoundComponent {
-  // readonly soundService = inject(SoundService);
+  readonly soundService = inject(SoundNewService);
+
+  readonly route = computed(() => {
+    const defaultDevice = this.soundService.defaultSinkDevice()?.id;
+
+    if (!defaultDevice) return undefined;
+
+    return this.soundService.deviceRoute().get(defaultDevice);
+  });
+
+  readonly volume = computed(() => {
+    return Math.floor((this.route()?.output?.volume[0] ?? 0) * 100);
+  });
 
   readonly sinkIcon = computed(() => {
-    // if (this.soundService.defaultSink()?.muted) return VolumeOff;
+    if (this.route()?.output?.mute) return VolumeOff;
 
-    // if (this.soundService.defaultVolume() > 50) return Volume2;
+    if (this.volume() > 50) return Volume2;
 
-    // if (this.soundService.defaultVolume() > 10) return Volume1;
+    if (this.volume() > 10) return Volume1;
 
     return Volume;
   });

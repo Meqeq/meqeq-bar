@@ -22,6 +22,7 @@ import {
   VolumeOff,
 } from 'lucide-angular';
 import { invoke } from '@tauri-apps/api/core';
+import { PwNode } from '../../sound/sound.service';
 
 @Component({
   selector: 'app-device',
@@ -35,6 +36,8 @@ export class DeviceComponent {
   readonly device = input.required<PwDevice>();
 
   readonly type = input.required<'input' | 'output'>();
+
+  readonly default = input(false);
 
   readonly enumRoutes = computed(() => {
     const enumRoutes = this.soundService
@@ -106,6 +109,22 @@ export class DeviceComponent {
       routeDevice: route.devices[0],
       channelVolumes: [this.value(), this.value()],
     });
+  }
+
+  setDefault(): void {
+    let node: PwNode | undefined;
+
+    this.soundService.nodes().forEach((n) => {
+      if (n.deviceId === this.device().id) node = n;
+    });
+
+    if (!node) return;
+    invoke(
+      this.type() === 'output' ? 'set_default_sink' : 'set_default_source',
+      {
+        sink: JSON.stringify({ name: node.name }),
+      },
+    );
   }
 
   readonly icons = {

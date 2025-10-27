@@ -3,6 +3,7 @@ import { SoundNewService } from './sound-new.service';
 import { DeviceComponent } from './device/device.component';
 import { NodeComponent } from './node/node.component';
 import { DeviceConfigComponent } from './device-config/device-config.component';
+import { JsonPipe } from '@angular/common';
 
 const menuOptions = [
   'output',
@@ -17,7 +18,7 @@ type MenuOption = (typeof menuOptions)[number];
 @Component({
   selector: 'app-sound-new',
   templateUrl: './sound-new.component.html',
-  imports: [DeviceComponent, NodeComponent, DeviceConfigComponent],
+  imports: [DeviceComponent, NodeComponent, DeviceConfigComponent, JsonPipe],
 })
 export class SoundNewComponent {
   readonly soundService = inject(SoundNewService);
