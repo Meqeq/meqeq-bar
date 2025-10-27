@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { SoundNewService } from './sound-new/sound-new.service';
+import { SoundService } from './sound/sound.service';
 
 @Component({
   selector: 'app-root',
@@ -8,5 +8,5 @@ import { SoundNewService } from './sound-new/sound-new.service';
   templateUrl: './app.component.html',
 })
 export class AppComponent {
-  private readonly _soundService = inject(SoundNewService);
+  private readonly _soundService = inject(SoundService);
 }

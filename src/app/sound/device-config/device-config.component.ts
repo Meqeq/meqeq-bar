@@ -7,8 +7,8 @@ import {
   input,
   signal,
 } from '@angular/core';
-import { PwDevice, PwDeviceProfile } from '../sound-new.schema';
-import { SoundNewService } from '../sound-new.service';
+import { PwDevice, PwDeviceProfile } from '../sound.schema';
+import { SoundService } from '../sound.service';
 import { JsonPipe } from '@angular/common';
 import { ComboComponent } from '../../common/combo/combo.component';
 
@@ -23,7 +23,7 @@ import { invoke } from '@tauri-apps/api/core';
   imports: [FormsModule, JsonPipe, LucideAngularModule, ComboComponent],
 })
 export class DeviceConfigComponent {
-  private readonly soundService = inject(SoundNewService);
+  private readonly soundService = inject(SoundService);
 
   readonly device = input.required<PwDevice>();
 

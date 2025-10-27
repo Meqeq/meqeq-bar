@@ -19,9 +19,7 @@ export const routes: Routes = [
           {
             path: 'sound',
             loadComponent: () =>
-              import('./sound-new/sound-new.component').then(
-                (c) => c.SoundNewComponent,
-              ),
+              import('./sound/sound.component').then((c) => c.SoundComponent),
           },
         ],
       },

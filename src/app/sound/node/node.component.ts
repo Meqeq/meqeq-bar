@@ -7,8 +7,8 @@ import {
   input,
   signal,
 } from '@angular/core';
-import { PwNode } from '../sound-new.schema';
-import { SoundNewService } from '../sound-new.service';
+import { PwNode } from '../sound.schema';
+import { SoundService } from '../sound.service';
 import { DecimalPipe, JsonPipe } from '@angular/common';
 import { ComboComponent } from '../../common/combo/combo.component';
 
@@ -36,7 +36,7 @@ import { invoke } from '@tauri-apps/api/core';
   ],
 })
 export class NodeComponent {
-  private readonly soundService = inject(SoundNewService);
+  private readonly soundService = inject(SoundService);
 
   readonly node = input.required<PwNode>();
 

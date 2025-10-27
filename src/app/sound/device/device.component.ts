@@ -7,8 +7,8 @@ import {
   input,
   signal,
 } from '@angular/core';
-import { PwDevice, PwDeviceRoute } from '../sound-new.schema';
-import { SoundNewService } from '../sound-new.service';
+import { PwDevice, PwDeviceRoute, PwNode } from '../sound.schema';
+import { SoundService } from '../sound.service';
 import { JsonPipe } from '@angular/common';
 import { ComboComponent } from '../../common/combo/combo.component';
 
@@ -22,7 +22,6 @@ import {
   VolumeOff,
 } from 'lucide-angular';
 import { invoke } from '@tauri-apps/api/core';
-import { PwNode } from '../../sound/sound.service';
 
 @Component({
   selector: 'app-device',
@@ -31,7 +30,7 @@ import { PwNode } from '../../sound/sound.service';
   imports: [FormsModule, JsonPipe, LucideAngularModule, ComboComponent],
 })
 export class DeviceComponent {
-  private readonly soundService = inject(SoundNewService);
+  private readonly soundService = inject(SoundService);
 
   readonly device = input.required<PwDevice>();
 

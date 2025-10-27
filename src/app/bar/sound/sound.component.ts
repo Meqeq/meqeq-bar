@@ -8,7 +8,7 @@ import {
   VolumeOff,
 } from 'lucide-angular';
 import { DecimalPipe } from '@angular/common';
-import { SoundNewService } from '../../sound-new/sound-new.service';
+import { SoundService } from '../../sound/sound.service';
 
 @Component({
   selector: 'app-sound',
@@ -16,7 +16,7 @@ import { SoundNewService } from '../../sound-new/sound-new.service';
   imports: [LucideAngularModule, DecimalPipe],
 })
 export class SoundComponent {
-  readonly soundService = inject(SoundNewService);
+  readonly soundService = inject(SoundService);
 
   readonly route = computed(() => {
     const defaultDevice = this.soundService.defaultSinkDevice()?.id;

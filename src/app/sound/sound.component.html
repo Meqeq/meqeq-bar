@@ -1,47 +1,52 @@
 <div class="bg-base-100 p-4 rounded-box flex flex-col items-center w-148">
-  <div class="self-start tabs tabs-lift">
-    <input
-      type="radio"
-      name="tab"
-      class="tab"
-      aria-label="Urządzenia"
-      [checked]="tab() === 'devices'"
-      (click)="tab.set('devices')"
-    />
+  <ul class="menu menu-xs menu-horizontal bg-base-200 rounded-box self-start">
+    @for (option of menuOptions; track $index) {
+      <li>
+        <a
+          [class.menu-active]="option.value === tab()"
+          (click)="tab.set(option.value)"
+        >
+          {{ option.label }}
+        </a>
+      </li>
+    }
+  </ul>
 
-    <input
-      type="radio"
-      name="tab"
-      class="tab"
-      aria-label="Programy"
-      [checked]="tab() === 'streams'"
-      (click)="tab.set('streams')"
-    />
-
-    <input
-      type="radio"
-      name="tab"
-      class="tab"
-      aria-label="Konfiguracja"
-      [checked]="tab() === 'config'"
-      (click)="tab.set('config')"
-    />
-  </div>
-
-  <div class="w-full border-1 border-base-300 -mt-[1px]">
+  <ul class="list bg-base-100 rounded-box shadow-md w-full">
     @switch (tab()) {
-      @case ("devices") {
-        <app-node-list type="sink"></app-node-list>
-        <app-node-list type="source"></app-node-list>
-
-        <app-devices-list type="input"></app-devices-list>
+      @case ("output") {
+        @for (device of soundService.devices().values(); track device.id) {
+          <app-device
+            type="output"
+            [device]="device"
+            [default]="soundService.defaultSinkDevice() === device"
+          ></app-device>
+        } @empty {
+          <div class="list-row">Pusto</div>
+        }
       }
-      @case ("streams") {
-        <app-node-list type="stream"></app-node-list>
+      @case ("input") {
+        @for (device of soundService.devices().values(); track device.id) {
+          <app-device [device]="device" type="input"></app-device>
+        }
+      }
+      @case ("playback") {
+        @for (node of playbacks(); track node.id) {
+          <app-node [node]="node" type="output"></app-node>
+        }
+      }
+      @case ("recording") {
+        @for (node of recordings(); track node.id) {
+          <app-node [node]="node" type="input"></app-node>
+        } @empty {
+          <div class="list-row">Pusto</div>
+        }
       }
       @case ("config") {
-        <app-devices-list type="config"></app-devices-list>
+        @for (device of soundService.devices().values(); track device.id) {
+          <app-device-config [device]="device"></app-device-config>
+        }
       }
     }
-  </div>
+  </ul>
 </div>
