@@ -187,6 +187,8 @@ impl StatusNotifierHost {
         .await
         .unwrap();
 
+        println!("NEW ITEM KEK");
+
         let menu_path = item_proxy.menu().await.unwrap().to_string();
         let menu_proxy =
             DbusMenuProxy::new(&self.connection, service.to_string(), menu_path.clone())

@@ -10,6 +10,7 @@ import { fromTauriEvent } from '../common/tauri-utils';
 import { map } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { EthernetComponent } from './ethernet/ethernet.component';
+import { TrayComponent } from './tray/tray.component';
 
 interface ActiveWindow {
   class: string;
@@ -25,6 +26,7 @@ interface ActiveWindow {
     StartComponent,
     SoundComponent,
     ClockComponent,
+    TrayComponent,
     EthernetComponent,
     PowerMenuComponent,
   ],

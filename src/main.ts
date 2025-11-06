@@ -7,3 +7,7 @@ import { AppComponent } from './app/app.component';
 bootstrapApplication(AppComponent, appConfig).catch((err) =>
   console.error(err),
 );
+
+setTimeout(() => {
+  console.log(document.body.clientHeight);
+}, 1000);

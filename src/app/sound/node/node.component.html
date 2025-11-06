@@ -2,6 +2,7 @@
   <div class="flex">
     <div class="flex-1">
       <div>{{ node().nick || node().name }}</div>
+
       <div class="text-xs uppercase font-semibold opacity-60">
         {{ node().description }}
       </div>
@@ -16,14 +17,15 @@
     </div>
   </div>
 
-  <div class="flex py-2 gap-4">
-    <div class="flex-1 flex pt-[10px]">
+  <div class="flex py-2 gap-4 items-center">
+    <div class="flex-1 flex">
       <input
         class="slider flex-1 h-1 bg-base-300 m-0"
         type="range"
         step="0.01"
         min="0"
         max="1"
+        [style.--val]="`${value() * 100}%`"
         [(ngModel)]="value"
         (ngModelChange)="changeVolume()"
         (click)="$event.stopPropagation()"

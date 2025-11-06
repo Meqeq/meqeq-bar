@@ -1,9 +1,9 @@
 <div
-  class="bg-base-200 hover:bg-base-300 hover:text-info rounded-[3px] h-full flex justify-center px-2 items-center cursor-pointer group"
+  class="hover:text-primary h-full flex justify-center items-center cursor-pointer group"
 >
-  <lucide-icon [img]="sinkIcon()" [size]="20" class="-mr-[0px]"></lucide-icon>
+  <lucide-icon [img]="sinkIcon()" [size]="18" class="-mr-[0px]"></lucide-icon>
   <div class="max-w-0 group-hover:max-w-10 overflow-hidden transition-all">
-    <div class="text-sm pl-2" [class.text-error]="volume() > 100">
+    <div class="text-sm font-mono" [class.text-error]="volume() > 100">
       {{ volume() | number: "1.0-0" }}%
     </div>
   </div>

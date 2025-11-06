@@ -27,7 +27,11 @@
       }
       @case ("input") {
         @for (device of soundService.devices().values(); track device.id) {
-          <app-device [device]="device" type="input"></app-device>
+          <app-device
+            type="input"
+            [device]="device"
+            [default]="soundService.defaultSourceDevice() === device"
+          ></app-device>
         }
       }
       @case ("playback") {

@@ -166,6 +166,27 @@ export class SoundService {
     return defaultDevice;
   });
 
+  readonly defaultSourceName = toSignal(
+    fromTauriEvent<PwDefault>('pw_default_source').pipe(
+      map((res) => {
+        return res.name;
+      }),
+    ),
+  );
+
+  readonly defaultSourceDevice = computed(() => {
+    let defaultNode: PwNode | undefined;
+    this.nodes().forEach((node) => {
+      if (node.name === this.defaultSinkName()) defaultNode = node;
+    });
+
+    if (!defaultNode) return null;
+
+    const defaultDevice = this.devices().get(defaultNode.deviceId);
+    console.log(defaultDevice);
+    return defaultDevice;
+  });
+
   readonly defaultSource = toSignal(
     fromTauriEvent<PwDefault>('pw_default_source').pipe(map((res) => res.name)),
   );

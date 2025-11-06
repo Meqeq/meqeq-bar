@@ -27,11 +27,11 @@ export class SoundComponent {
   });
 
   readonly volume = computed(() => {
-    return Math.floor((this.route()?.output?.volume[0] ?? 0) * 100);
+    return Math.round((this.route()?.output?.volume[0] ?? 0) * 100);
   });
 
   readonly sinkIcon = computed(() => {
-    if (this.route()?.output?.mute) return VolumeOff;
+    if (this.route()?.output?.mute || this.volume() < 1) return VolumeOff;
 
     if (this.volume() > 50) return Volume2;
 

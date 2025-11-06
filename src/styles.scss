@@ -1,6 +1,8 @@
 @use "tailwindcss";
 
-@plugin "daisyui";
+@plugin "daisyui" {
+  themes: all;
+}
 
 @plugin "daisyui/theme" {
   name: "dark";
@@ -46,8 +48,21 @@
   --noise: 0;
 }
 
-:root {
+@plugin "daisyui/theme" {
+  name: "halloween";
+  default: true;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+}
+
+:root,
+body {
   background: #00000000;
+}
+
+:root {
+  height: 100vh;
+  width: 100vw;
   --font-sans: Atkinson Hiperlegible;
   --font-mono: Atkinson Hiperlegible Mono;
 }

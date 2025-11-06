@@ -4,7 +4,7 @@
   "scripts": {
     "ng": "ng",
     "dev": "ng serve",
-    "start": "LD_LIBRARY_PATH=/usr/local/lib tauri dev",
+    "start": "GTK_CSD=0 LD_LIBRARY_PATH=/usr/local/lib tauri dev",
     "start2": "WEBKIT_DISABLE_DMABUF_RENDERER=1 tauri dev",
     "build": "tauri build",
     "build:angular": "ng build",

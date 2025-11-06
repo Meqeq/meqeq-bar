@@ -1,77 +1,78 @@
-<li class="list-row" [class.text-gray-700!]="!currentRoute()">
-  <div
-    class="w-1 rounded hover:bg-secondary"
-    [class.bg-primary]="default()"
-    (click)="setDefault()"
-  ></div>
-  <div>
-    <div class="flex">
-      <div class="flex-1">
-        <div>{{ device().description }}</div>
-        <div class="text-xs uppercase font-semibold opacity-60">
-          {{ device().mixerName }}
-        </div>
-      </div>
-      <div class="flex gap-2">
-        <button class="btn btn-square btn-ghost" (click)="changeMute()">
-          <lucide-icon
-            [img]="
-              currentRoute()?.mute ? icons[type()].muted : icons[type()].unmuted
-            "
-            [size]="20"
-          ></lucide-icon>
-        </button>
-        <button
-          class="btn btn-square"
-          [class.btn-ghost]="!showSettings()"
-          [class.btn-secondary]="showSettings()"
-          (click)="showSettings.set(!showSettings())"
-        >
-          <lucide-icon [img]="icons.settings" [size]="20"></lucide-icon>
-        </button>
+<li class="list-row block" [class.text-gray-700!]="!currentRoute()">
+  <div class="flex">
+    <div class="flex-1" [class.opacity-75]="!default()">
+      <div>{{ device().description }}</div>
+      <div class="text-xs uppercase font-semibold opacity-60">
+        {{ device().mixerName }}
       </div>
     </div>
-
-    <div class="flex py-2 gap-4">
-      <div class="flex-1 flex pt-[10px]">
-        <input
-          class="slider flex-1 h-1 bg-base-300 m-0"
-          type="range"
-          step="0.01"
-          min="0"
-          max="1"
-          [(ngModel)]="value"
-          (ngModelChange)="changeVolume()"
-          (click)="$event.stopPropagation()"
-        />
-      </div>
-      <div class="badge badge-sm badge-primary text-primary-content">
-        {{ volume() }}%
-      </div>
+    <div class="flex gap-2">
+      <button
+        class="btn btn-ghost btn-square"
+        [class.text-primary]="default()"
+        (click)="setDefault()"
+      >
+        <lucide-icon [img]="icons.check" [size]="20"></lucide-icon>
+      </button>
+      <button class="btn btn-square btn-ghost" (click)="changeMute()">
+        <lucide-icon
+          [img]="
+            currentRoute()?.mute ? icons[type()].muted : icons[type()].unmuted
+          "
+          [size]="20"
+        ></lucide-icon>
+      </button>
+      <button
+        class="btn btn-square"
+        [class.btn-ghost]="!showSettings()"
+        [class.btn-secondary]="showSettings()"
+        (click)="showSettings.set(!showSettings())"
+      >
+        <lucide-icon [img]="icons.settings" [size]="20"></lucide-icon>
+      </button>
     </div>
-
-    @if (showSettings()) {
-      <div class="flex">
-        <app-combo
-          class="flex-1"
-          valueKey="index"
-          displayKey="description"
-          [items]="enumRoutes()"
-          [rowTemplate]="row"
-          [(ngModel)]="routeControl"
-          (selectedChange)="changeRoute($event)"
-        >
-          <ng-template #row let-route>
-            <div class="flex justify-between items-center">
-              {{ route.description }}
-
-              @if (!route.available) {
-                <div class="badge badge-xs badge-neutral">Niedostępny</div>
-              }
-            </div>
-          </ng-template>
-        </app-combo>
-      </div>
-    }
   </div>
+
+  <div class="flex py-2 gap-4 items-center" [class.opacity-60]="!default()">
+    <div class="flex-1 flex">
+      <input
+        class="slider flex-1 h-1 bg-base-300 m-0"
+        type="range"
+        step="0.01"
+        min="0"
+        max="1"
+        [style.--val]="`${value() * 100}%`"
+        [(ngModel)]="value"
+        (ngModelChange)="changeVolume()"
+        (click)="$event.stopPropagation()"
+      />
+    </div>
+    <div class="w-14 font-bold badge badge-sm badge-primary">
+      {{ volume() }}%
+    </div>
+  </div>
+
+  @if (showSettings()) {
+    <div class="flex">
+      <app-combo
+        class="flex-1"
+        valueKey="index"
+        displayKey="description"
+        [items]="enumRoutes()"
+        [rowTemplate]="row"
+        [(ngModel)]="routeControl"
+        (selectedChange)="changeRoute($event)"
+      >
+        <ng-template #row let-route>
+          <div class="flex justify-between items-center">
+            {{ route.description }}
+
+            @if (!route.available) {
+              <div class="badge badge-xs badge-neutral">Niedostępny</div>
+            }
+          </div>
+        </ng-template>
+      </app-combo>
+    </div>
+  }
 </li>

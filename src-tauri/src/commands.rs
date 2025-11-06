@@ -58,7 +58,7 @@ pub async fn initialize(app: AppHandle) {
     let _ = join!(
         init_hyprland(app.clone()),
         // init_pipewire(app.clone()),
-        // init_dbus(app.clone()),
+        init_dbus(app.clone()),
         // res,
         res2
     );
@@ -82,16 +82,6 @@ pub async fn set_layer(app: AppHandle, bar: usize, layer: String) {
     })
     .unwrap();
 }
-
-// #[command]
-// pub async fn set_volume(id: u32, volume: f32) {
-//     // utils::pipewire::set_volume(id, volume).await;
-// }
-
-// #[command]
-// pub async fn set_default(id: u32) {
-//     // utils::pipewire::set_default(id).await;
-// }
 
 #[tauri::command]
 pub fn set_current_workspace(id: i32, app: AppHandle) {

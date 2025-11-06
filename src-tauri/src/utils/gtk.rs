@@ -1,5 +1,5 @@
 use gtk::{
-    gdk::{Display, Monitor},
+    gdk::{self, Display, Monitor},
     prelude::{ContainerExt, GtkWindowExt, MonitorExt, WidgetExt},
     ApplicationWindow,
 };
@@ -58,13 +58,20 @@ pub fn make_bar(app: &App, monitor: &MonitorInfo) -> ApplicationWindow {
     gtk_window.add(&gtk_box);
 
     gtk_window.init_layer_shell();
+
     gtk_window.set_layer(Layer::Bottom);
     gtk_window.set_anchor(Edge::Bottom, true);
+    println!("EEEEE: {} {}", monitor.height, monitor.width);
+    gtk_window.set_exclusive_zone(40);
 
-    gtk_window.set_exclusive_zone(50);
+    gtk_window.set_monitor(&monitor.monitor);
+    gtk_window.fullscreen();
+    gtk_window.set_type_hint(gdk::WindowTypeHint::Dock);
     gtk_window.set_height_request(monitor.height);
     gtk_window.set_width_request(monitor.width);
-    gtk_window.set_monitor(&monitor.monitor);
+    gtk_window.set_hide_titlebar_when_maximized(true);
+    gtk_window.set_decorated(false);
+    gtk_window.set_titlebar(None::<&gtk::Widget>);
 
     gtk_window.show_all();
 

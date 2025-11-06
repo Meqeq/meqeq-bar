@@ -1,10 +1,10 @@
-<div class="rounded-[3px] flex gap-2 text-sm font-bold font-mono">
+<div class="flex gap-[6px] text-sm font-bold font-mono p-[6px]">
   @for (workspace of workspaces.value(); track workspace.id) {
     <div
-      class="rounded-[3px] bg-base-200 hover:bg-base-300 hover:text-success w-6 h-6 leading-6 text-center shadow-sm transition-all duration-300"
-      [class.cursor-pointer]="workspace.id !== activeWorkspace.value()"
+      class="rounded-field hover:bg-base-300 hover:text-success w-5 h-5 leading-5 text-center shadow-xs transition-all duration-300"
       [class.!bg-primary]="workspace.id === activeWorkspace.value()"
       [class.!text-primary-content]="workspace.id === activeWorkspace.value()"
+      [class.cursor-pointer]="workspace.id !== activeWorkspace.value()"
       [class.shadow-primary]="workspace.id === activeWorkspace.value()"
       (click)="setCurrentWorkspace(workspace.id)"
     >

@@ -1,6 +1,4 @@
-<div
-  class="w-screen h-screen flex flex-col justify-end items-end p-2 gap-2 relative"
->
+<div class="w-screen h-screen flex flex-col justify-end items-end p-2">
   @if (barService.isPopupOpen()) {
     <div
       class="absolute w-full h-full top-0 left-0"
@@ -8,28 +6,76 @@
     ></div>
   }
 
-  <div class="relative z-1000">
+  <div class="relative z-1000 py-2">
     <router-outlet></router-outlet>
   </div>
-  <div
-    class="w-full bg-base-100 h-10 p-2 flex items-center shadow-md rounded-[6px] flex"
-  >
-    <div class="flex-1 flex">
-      <app-start></app-start>
 
-      <div class="divider divider-horizontal mx-2"></div>
-      <app-workspaces></app-workspaces>
+  <div class="flex w-full h-8 justify-between">
+    <div class="flex-1 flex">
+      <div class="bg-base-100 rounded-field flex overflow-hidden">
+        <app-start></app-start>
+        <!-- <div class="divider divider-horizontal w-0! mx-2"></div> -->
+        <app-workspaces></app-workspaces>
+      </div>
     </div>
 
-    <div class="text-sm">{{ activeWindow() }}</div>
+    @if (activeWindow()) {
+      <div class="bg-base-100 rounded-field text-sm leading-8 px-2">
+        {{ activeWindow() }}
+      </div>
+    }
+    <div class="flex-1 flex justify-end">
+      <div
+        class="flex items-center gap-2 pl-2 bg-base-100 rounded-field overflow-hidden"
+      >
+        <app-sound (click)="barService.openPopup($event, 'sound')"></app-sound>
+        <app-ethernet></app-ethernet>
 
-    <div class="flex-1 flex justify-end gap-4">
-      <app-sound (click)="barService.openPopup($event, 'sound')"></app-sound>
-      <app-ethernet></app-ethernet>
-      <app-clock (click)="barService.openPopup($event, 'calendar')"></app-clock>
+        @if (barService.trayItems().length) {
+          <div class="divider divider-horizontal w-0! mx-0 py-2"></div>
+          <app-tray />
+        }
 
-      <div class="divider divider-horizontal -mx-2"></div>
-      <app-power-menu></app-power-menu>
+        <div class="divider divider-horizontal w-0! mx-0 py-2"></div>
+        <app-clock
+          (click)="barService.openPopup($event, 'calendar')"
+        ></app-clock>
+        <app-power-menu></app-power-menu>
+      </div>
     </div>
   </div>
 </div>
+
+<!-- <div -->
+<!--   class="w-screen h-screen flex flex-col justify-end items-end p-2 gap-2 relative" -->
+<!-- > -->
+<!--   @if (barService.isPopupOpen()) { -->
+<!--     <div -->
+<!--       class="absolute w-full h-full top-0 left-0" -->
+<!--       (click)="barService.closePopup()" -->
+<!--     ></div> -->
+<!--   } -->
+
+<!--   <div class="relative z-1000"> -->
+<!--     <router-outlet></router-outlet> -->
+<!--   </div> -->
+<!--   <div -->
+<!--     class="w-full bg-base-100 h-10 p-2 flex items-center shadow-md rounded-[6px] flex" -->
+<!--   > -->
+<!--     <div class="flex-1 flex"> -->
+<!--       <app-start></app-start> -->
+
+<!--       <div class="divider divider-horizontal mx-2"></div> -->
+<!--       <app-workspaces></app-workspaces> -->
+<!--     </div> -->
+
+<!--     <div class="text-sm"></div> -->
+
+<!--     <div class="flex-1 flex justify-end gap-4"> -->
+
+<!--        -->
+<!--       <div class="divider divider-horizontal -mx-2"></div> -->
+
+<!--     </div> -->
+<!--   </div> -->
+<!-- </div> -->

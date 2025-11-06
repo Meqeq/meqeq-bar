@@ -1,6 +1,14 @@
 import { Component } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { EthernetPort, LucideAngularModule, Unplug } from 'lucide-angular';
+import {
+  Cable,
+  EthernetPort,
+  LucideAngularModule,
+  MonitorDot,
+  MonitorSmartphone,
+  ScreenShareOff,
+  Unplug,
+} from 'lucide-angular';
 import { fromEvent, map, merge, startWith } from 'rxjs';
 
 @Component({
@@ -18,7 +26,9 @@ export class EthernetComponent {
 
   readonly icon = toSignal(
     this.status$.pipe(
-      map((status) => (status === 'online' ? EthernetPort : Unplug)),
+      map((status) =>
+        status === 'online' ? MonitorSmartphone : ScreenShareOff,
+      ),
     ),
   );
 }

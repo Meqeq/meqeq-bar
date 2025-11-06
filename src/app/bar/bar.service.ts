@@ -1,8 +1,34 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { map } from 'rxjs';
+import { map, merge, Observable, scan } from 'rxjs';
 import { invoke } from '@tauri-apps/api/core';
+import { fromTauriEvent } from '../common/tauri-utils';
+
+export interface TrayMenuEntry {
+  id: number;
+  label: string;
+  visible: boolean;
+  type: 'separator' | '';
+}
+
+export interface TrayItemPayload {
+  service: string;
+  path: string;
+  title: string;
+  icon: number[];
+  menu: TrayMenuEntry[];
+  menu_path: string;
+}
+
+export interface TrayItem {
+  service: string;
+  path: string;
+  title: string;
+  icon: string;
+  menu: TrayMenuEntry[];
+  menu_path: string;
+}
 
 @Injectable()
 export class BarService {
@@ -43,5 +69,39 @@ export class BarService {
         bar: this.monitor(),
       });
     });
+  }
+
+  readonly trayItems = toSignal(
+    merge(this.getTrayItems('add'), this.getTrayItems('remove')).pipe(
+      scan((items, item) => {
+        if (item.type === 'add') return [...items, item];
+        else return items.filter((i) => i.service !== item.service);
+      }, [] as TrayItem[]),
+    ),
+    {
+      initialValue: [],
+    },
+  );
+
+  private getTrayItems<T extends 'add' | 'remove'>(
+    type: T,
+  ): Observable<TrayItem & { type: T }> {
+    return fromTauriEvent<TrayItemPayload>(`tray_item_${type}`).pipe(
+      map((event) => {
+        const content = new Uint8Array(event.icon);
+        console.log(event);
+        return {
+          type,
+          menu: event.menu,
+          path: event.path,
+          title: event.title,
+          service: event.service,
+          menu_path: event.menu_path,
+          icon: URL.createObjectURL(
+            new Blob([content.buffer], { type: 'image/png' } /* (1) */),
+          ),
+        };
+      }),
+    );
   }
 }
