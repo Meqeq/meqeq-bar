@@ -9,8 +9,7 @@ import {
 } from '@angular/core';
 import { PwNode } from '../sound.schema';
 import { SoundService } from '../sound.service';
-import { DecimalPipe, JsonPipe } from '@angular/common';
-import { ComboComponent } from '../../common/combo/combo.component';
+import { DecimalPipe } from '@angular/common';
 
 import { FormsModule } from '@angular/forms';
 import {
@@ -27,13 +26,7 @@ import { invoke } from '@tauri-apps/api/core';
   selector: 'app-node',
   templateUrl: './node.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    FormsModule,
-    DecimalPipe,
-    JsonPipe,
-    LucideAngularModule,
-    ComboComponent,
-  ],
+  imports: [FormsModule, DecimalPipe, LucideAngularModule],
   styles: [
     `
       .slider {

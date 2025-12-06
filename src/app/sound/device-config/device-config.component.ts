@@ -9,7 +9,6 @@ import {
 } from '@angular/core';
 import { PwDevice, PwDeviceProfile } from '../sound.schema';
 import { SoundService } from '../sound.service';
-import { JsonPipe } from '@angular/common';
 import { ComboComponent } from '../../common/combo/combo.component';
 
 import { FormsModule } from '@angular/forms';
@@ -20,7 +19,7 @@ import { invoke } from '@tauri-apps/api/core';
   selector: 'app-device-config',
   templateUrl: './device-config.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, JsonPipe, LucideAngularModule, ComboComponent],
+  imports: [FormsModule, LucideAngularModule, ComboComponent],
 })
 export class DeviceConfigComponent {
   private readonly soundService = inject(SoundService);

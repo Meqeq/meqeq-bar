@@ -9,7 +9,6 @@ import {
 } from '@angular/core';
 import { PwDevice, PwDeviceRoute, PwNode } from '../sound.schema';
 import { SoundService } from '../sound.service';
-import { JsonPipe } from '@angular/common';
 import { ComboComponent } from '../../common/combo/combo.component';
 
 import { FormsModule } from '@angular/forms';
@@ -28,7 +27,7 @@ import { invoke } from '@tauri-apps/api/core';
   selector: 'app-device',
   templateUrl: './device.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, JsonPipe, LucideAngularModule, ComboComponent],
+  imports: [FormsModule, LucideAngularModule, ComboComponent],
   styles: [
     `
       .slider {
