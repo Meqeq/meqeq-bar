@@ -1,8 +1,20 @@
 use libspa::{
     param::ParamType,
-    pod::{serialize::PodSerializer, Object, Pod, Property, PropertyFlags, Value},
+    pod::{
+        deserialize::PodDeserializer, serialize::PodSerializer, Object, Pod, Property,
+        PropertyFlags, Value,
+    },
 };
 use pipewire::device::Device;
+
+pub fn deserialize(param: Option<&Pod>) -> Option<Object> {
+    param
+        .and_then(|pod| PodDeserializer::deserialize_any_from(pod.as_bytes()).ok())
+        .and_then(|(_, value)| match value {
+            Value::Object(obj) => Some(obj),
+            _ => None,
+        })
+}
 
 pub fn device_set_route_properties(
     device: &Device,

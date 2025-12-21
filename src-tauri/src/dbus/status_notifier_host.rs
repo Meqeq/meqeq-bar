@@ -165,15 +165,15 @@ impl fmt::Debug for StatusNotifierHost {
 }
 
 impl StatusNotifierHost {
-    pub async fn connect(app: AppHandle) -> Self {
-        let connection = {
-            let state = app.state::<Mutex<AppState>>();
-            let state = state.lock().unwrap();
+    pub async fn connect(app: AppHandle) {
+        // let connection = {
+        //     let state = app.state::<Mutex<AppState>>();
+        //     let state = state.lock().unwrap();
 
-            state.connection.clone()
-        };
+        //     state.connection.clone()
+        // };
 
-        StatusNotifierHost { connection, app }
+        // StatusNotifierHost { connection, app }
     }
 
     async fn handle_new_item(&self, item: String) -> DbusMenuProxy {

@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 use libspa::{
     param::ParamType,
     pod::{Pod, Value, ValueArray},
@@ -13,8 +11,8 @@ use pipewire::{
 };
 
 use super::{
-    deserialize::deserialize,
     events::{PwEvent, PwNode, PwNodeProps},
+    utils::deserialize,
 };
 
 pub fn pw2ui(volume: f32) -> f32 {
@@ -116,7 +114,7 @@ fn extract_props(id: u32, pod: Option<&Pod>) -> Option<PwNodeProps> {
 pub fn handle_pipewire_node(
     global: &GlobalObject<&DictRef>,
     registry: &Registry,
-    event_sender: Rc<Sender<PwEvent>>,
+    event_sender: Sender<PwEvent>,
 ) -> (Node, NodeListener, ProxyListener) {
     let proxy = registry.bind::<Node, _>(global).unwrap();
 
@@ -125,7 +123,7 @@ pub fn handle_pipewire_node(
     let listener = proxy
         .add_listener_local()
         .info({
-            let sender = { Rc::clone(&event_sender) };
+            let sender = event_sender.clone();
             move |info| {
                 if let Some(node) = extract_info(info) {
                     sender.send(PwEvent::Node(node)).unwrap();
@@ -133,7 +131,7 @@ pub fn handle_pipewire_node(
             }
         })
         .param({
-            let sender = Rc::clone(&event_sender);
+            let sender = event_sender.clone();
             move |_, param_type, _, _, p5| {
                 match param_type {
                     ParamType::Props => {
@@ -151,8 +149,9 @@ pub fn handle_pipewire_node(
         .upcast_ref()
         .add_listener_local()
         .removed({
-            let sender = Rc::clone(&event_sender);
+            let sender = event_sender.clone();
             move || {
+                println!("DDD");
                 sender.send(PwEvent::NodeRemoved(id)).unwrap();
             }
         })

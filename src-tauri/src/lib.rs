@@ -1,23 +1,30 @@
 mod app_state;
 mod commands;
-mod dbus;
+// mod dbus;
+mod hyprland;
 mod pipewire;
 mod utils;
 
 use app_state::AppState;
-use commands::{call_tray_menu_item, initialize, run_menu, set_current_workspace, set_layer};
+use commands::{initialize, run_menu, set_layer};
 
+use hyprland::{commands::set_current_workspace, init::init_hyprland};
 use pipewire::commands::{
     set_default_sink, set_default_source, set_device_mute, set_device_profile, set_device_route,
     set_device_volume, set_node_mute, set_node_volume,
 };
+use pipewire::run::init_pipewire;
 use tauri::{App, Manager};
 
-fn setup<'a>(app: &'a mut App) -> Result<(), Box<dyn std::error::Error>> {
-    tauri::async_runtime::block_on(async move {
-        let state = AppState::new(&app).await;
-        app.manage(state);
-    });
+use utils::gtk::create_bars;
+
+fn setup(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
+    let bars = create_bars(app);
+
+    let hyprland = init_hyprland(app.handle());
+    let pipewire = init_pipewire(app.handle());
+
+    app.manage(AppState::new(bars, hyprland, pipewire));
 
     Ok(())
 }
@@ -29,7 +36,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             initialize,
             set_layer,
-            call_tray_menu_item,
+            // call_tray_menu_item,
             set_current_workspace,
             set_default_source,
             set_default_sink,

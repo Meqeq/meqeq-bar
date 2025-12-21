@@ -12,11 +12,11 @@ use pipewire::{
 };
 
 use super::{
-    deserialize::deserialize,
     events::{
         PwDevice, PwDeviceProfile, PwDeviceRoute, PwDeviceRouteDirection, PwEvent, PwMediaClass,
     },
     node::pw2ui,
+    utils::deserialize,
 };
 
 fn parse_media_class(prop: Property) -> Vec<PwMediaClass> {
@@ -229,7 +229,7 @@ fn extract_profile(id: u32, pod: Option<&Pod>) -> Option<PwDeviceProfile> {
 pub fn handle_pipewire_device(
     global: &GlobalObject<&DictRef>,
     registry: &Registry,
-    event_sender: Rc<Sender<PwEvent>>,
+    event_sender: Sender<PwEvent>,
 ) -> (Rc<Device>, DeviceListener) {
     let proxy = Rc::new(registry.bind::<Device, _>(global).unwrap());
 
@@ -244,7 +244,7 @@ pub fn handle_pipewire_device(
     let listener = proxy
         .add_listener_local()
         .info({
-            let sender = { Rc::clone(&event_sender) };
+            let sender = event_sender.clone();
             let device = { Rc::clone(&proxy) };
             move |info| {
                 if let Some(node) = extract_info(info) {
@@ -257,7 +257,7 @@ pub fn handle_pipewire_device(
             }
         })
         .param({
-            let sender = Rc::clone(&event_sender);
+            let sender = event_sender.clone();
             move |_, param_type, _, _, p5| {
                 match param_type {
                     ParamType::EnumProfile => {

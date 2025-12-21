@@ -1,5 +1,4 @@
 pub mod commands;
-pub mod deserialize;
 pub mod device;
 pub mod events;
 pub mod mainloop;

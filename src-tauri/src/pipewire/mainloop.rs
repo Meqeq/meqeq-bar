@@ -18,13 +18,13 @@ use pipewire::{
     registry::{GlobalObject, Registry},
     types::ObjectType,
 };
-use tauri::{AppHandle, Emitter};
+use tauri::AppHandle;
 
 use crate::pipewire::{device::handle_pipewire_device, node::ui2pw};
 
 use super::{
     commands::PwCommand,
-    events::PwEvent,
+    events::{handle_event, PwEvent},
     metadata::handle_pipewire_metadata,
     node::handle_pipewire_node,
     utils::{device_set_profile, device_set_route_properties},
@@ -62,7 +62,7 @@ enum Listener {
 fn handle_global(
     global: &GlobalObject<&DictRef>,
     registry: Rc<Registry>,
-    event_sender: Rc<Sender<PwEvent>>,
+    event_sender: Sender<PwEvent>,
 ) -> HandleResult {
     match global.type_ {
         ObjectType::Node => {
@@ -90,8 +90,6 @@ pub fn pipewire_main_loop(command_receiver: Receiver<PwCommand>, app: AppHandle)
 
     let registry_weak = Rc::downgrade(&registry);
 
-    let event_sender = Rc::new(event_tx);
-
     let nodes = Rc::new(RefCell::new(HashMap::new()));
     let devices = Rc::new(RefCell::new(HashMap::new()));
     let metadata = Rc::new(RefCell::new(None));
@@ -105,11 +103,7 @@ pub fn pipewire_main_loop(command_receiver: Receiver<PwCommand>, app: AppHandle)
     let _listener = registry
         .add_listener_local()
         .global(move |global| {
-            match handle_global(
-                global,
-                registry_weak.upgrade().unwrap(),
-                Rc::clone(&event_sender),
-            ) {
+            match handle_global(global, registry_weak.upgrade().unwrap(), event_tx.clone()) {
                 HandleResult::Node((node, node_listener, proxy_listener)) => {
                     nodes_ref.borrow_mut().insert(global.id, node);
                     listeners_ref
@@ -138,55 +132,7 @@ pub fn pipewire_main_loop(command_receiver: Receiver<PwCommand>, app: AppHandle)
         })
         .register();
 
-    let _kek = event_rx.attach(mainloop.loop_(), move |event| match event {
-        PwEvent::Node(node) => {
-            app.emit("pw_node", serde_json::to_string(&node).unwrap())
-                .unwrap();
-        }
-        PwEvent::NodeProps(node_props) => {
-            app.emit("pw_node_props", serde_json::to_string(&node_props).unwrap())
-                .unwrap();
-        }
-        PwEvent::NodeRemoved(id) => {
-            app.emit("pw_node_removed", id.to_string().as_str())
-                .unwrap();
-        }
-        PwEvent::DefaultSink(sink) => {
-            app.emit("pw_default_sink", sink.as_str()).unwrap();
-        }
-        PwEvent::DefaultSource(source) => {
-            app.emit("pw_default_source", source.as_str()).unwrap();
-        }
-        PwEvent::Device(device) => {
-            app.emit("pw_device", serde_json::to_string(&device).unwrap())
-                .unwrap();
-        }
-        PwEvent::DeviceEnumProfile(enum_profile) => {
-            app.emit(
-                "pw_device_enum_profile",
-                serde_json::to_string(&enum_profile).unwrap(),
-            )
-            .unwrap();
-        }
-        PwEvent::DeviceEnumRoute(enum_route) => {
-            app.emit(
-                "pw_device_enum_route",
-                serde_json::to_string(&enum_route).unwrap(),
-            )
-            .unwrap();
-        }
-        PwEvent::DeviceProfile(profile) => {
-            app.emit(
-                "pw_device_profile",
-                serde_json::to_string(&profile).unwrap(),
-            )
-            .unwrap();
-        }
-        PwEvent::DeviceRoute(route) => {
-            app.emit("pw_device_route", serde_json::to_string(&route).unwrap())
-                .unwrap();
-        }
-    });
+    let _kek = event_rx.attach(mainloop.loop_(), move |event| handle_event(event, &app));
 
     let nodes_ref = Rc::clone(&nodes);
     let devices_ref = Rc::clone(&devices);

@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 use libspa::utils::dict::DictRef;
 use pipewire::{
     channel::Sender,
@@ -12,7 +10,7 @@ use super::events::PwEvent;
 pub fn handle_pipewire_metadata(
     global: &GlobalObject<&DictRef>,
     registry: &Registry,
-    event_sender: Rc<Sender<PwEvent>>,
+    event_sender: Sender<PwEvent>,
 ) -> Option<(Metadata, MetadataListener)> {
     if let Some(name) = global.props.unwrap().get("metadata.name") {
         if name.eq("default") {
@@ -21,7 +19,7 @@ pub fn handle_pipewire_metadata(
             let listener = proxy
                 .add_listener_local()
                 .property({
-                    let sender = Rc::clone(&event_sender);
+                    let sender = event_sender.clone();
                     move |_subject, key, _type_, value| {
                         println!("DDDDDDDDDDDD {:?} {:?}", key, value);
                         match key.unwrap_or("") {

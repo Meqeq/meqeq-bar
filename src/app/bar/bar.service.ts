@@ -44,7 +44,9 @@ export class BarService {
   readonly isPopupOpen = signal(false);
 
   init() {
-    invoke('initialize');
+    setTimeout(() => {
+      invoke('initialize');
+    }, 100);
   }
 
   openPopup(event: MouseEvent, name: string): void {
