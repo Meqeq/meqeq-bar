@@ -3,17 +3,16 @@ import {
   Component,
   computed,
   effect,
-  inject,
   input,
   signal,
 } from '@angular/core';
-import { PwDevice, PwDeviceProfile } from '../sound.schema';
-import { SoundService } from '../sound.service';
+import { PwDeviceProfile } from '../sound.schema';
 import { ComboComponent } from '../../common/combo/combo.component';
 
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
 import { invoke } from '@tauri-apps/api/core';
+import { PwDeviceExtended } from '../../reducers/pipewire/pipewire.schema';
 
 @Component({
   selector: 'app-device-config',
@@ -22,22 +21,14 @@ import { invoke } from '@tauri-apps/api/core';
   imports: [FormsModule, LucideAngularModule, ComboComponent],
 })
 export class DeviceConfigComponent {
-  private readonly soundService = inject(SoundService);
-
-  readonly device = input.required<PwDevice>();
+  readonly device = input.required<PwDeviceExtended>();
 
   readonly enumProfiles = computed(() => {
-    const enumProfiles = this.soundService
-      .deviceEnumProfiles()
-      .get(this.device().id);
-
-    if (!enumProfiles) return [];
-
-    return enumProfiles.values().toArray();
+    return Object.values(this.device().enumProfiles);
   });
 
   readonly currentProfile = computed(() => {
-    return this.soundService.deviceProfile().get(this.device().id);
+    return this.device().profile;
   });
 
   readonly profileControl = signal(-1);

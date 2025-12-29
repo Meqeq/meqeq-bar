@@ -15,22 +15,22 @@
   <ul class="list bg-base-100 rounded-box shadow-md w-full">
     @switch (tab()) {
       @case ("output") {
-        @for (device of soundService.devices().values(); track device.id) {
+        @for (device of devices(); track device.id) {
           <app-device
             type="output"
             [device]="device"
-            [default]="soundService.defaultSinkDevice() === device"
+            [default]="defaultSink() === device"
           ></app-device>
         } @empty {
           <div class="list-row">Pusto</div>
         }
       }
       @case ("input") {
-        @for (device of soundService.devices().values(); track device.id) {
+        @for (device of devices(); track device.id) {
           <app-device
             type="input"
             [device]="device"
-            [default]="soundService.defaultSourceDevice() === device"
+            [default]="defaultSource() === device"
           ></app-device>
         }
       }
@@ -47,7 +47,7 @@
         }
       }
       @case ("config") {
-        @for (device of soundService.devices().values(); track device.id) {
+        @for (device of devices(); track device.id) {
           <app-device-config [device]="device"></app-device-config>
         }
       }

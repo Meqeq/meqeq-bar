@@ -8,7 +8,8 @@ import {
   VolumeOff,
 } from 'lucide-angular';
 import { DecimalPipe } from '@angular/common';
-import { SoundService } from '../../sound/sound.service';
+import { Store } from '@ngrx/store';
+import { selectDefaultSink } from '../../reducers/pipewire/pipewire.selectors';
 
 @Component({
   selector: 'app-sound',
@@ -16,22 +17,19 @@ import { SoundService } from '../../sound/sound.service';
   imports: [LucideAngularModule, DecimalPipe],
 })
 export class SoundComponent {
-  readonly soundService = inject(SoundService);
+  private readonly store = inject(Store);
 
-  readonly route = computed(() => {
-    const defaultDevice = this.soundService.defaultSinkDevice()?.id;
-
-    if (!defaultDevice) return undefined;
-
-    return this.soundService.deviceRoute().get(defaultDevice);
-  });
+  readonly defaultDevice = this.store.selectSignal(selectDefaultSink);
 
   readonly volume = computed(() => {
-    return Math.round((this.route()?.output?.volume[0] ?? 0) * 100);
+    return Math.round(
+      (this.defaultDevice()?.route.output?.volume[0] ?? 0) * 100,
+    );
   });
 
   readonly sinkIcon = computed(() => {
-    if (this.route()?.output?.mute || this.volume() < 1) return VolumeOff;
+    if (this.defaultDevice()?.route?.output?.mute || this.volume() < 1)
+      return VolumeOff;
 
     if (this.volume() > 50) return Volume2;
 

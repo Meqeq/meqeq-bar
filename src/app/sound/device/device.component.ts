@@ -7,7 +7,7 @@ import {
   input,
   signal,
 } from '@angular/core';
-import { PwDevice, PwDeviceRoute, PwNode } from '../sound.schema';
+import { PwDeviceRoute, PwNode } from '../sound.schema';
 import { SoundService } from '../sound.service';
 import { ComboComponent } from '../../common/combo/combo.component';
 
@@ -22,85 +22,41 @@ import {
   VolumeOff,
 } from 'lucide-angular';
 import { invoke } from '@tauri-apps/api/core';
+import { Store } from '@ngrx/store';
+import { PwDeviceExtended } from '../../reducers/pipewire/pipewire.schema';
 
 @Component({
   selector: 'app-device',
   templateUrl: './device.component.html',
+  styleUrl: './device.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule, LucideAngularModule, ComboComponent],
-  styles: [
-    `
-      .slider {
-        -webkit-appearance: none;
-        appearance: none;
-        width: 100%;
-        height: 0.5rem;
-        border-radius: 9999px;
-        background: var(--color-neutral);
-        outline: none;
-        cursor: pointer;
-        --val: 50%;
-      }
-
-      .slider::-webkit-slider-runnable-track {
-        height: 0.5rem;
-        border-radius: 9999px;
-        background: linear-gradient(
-          to right,
-          var(--color-primary) var(--val),
-          var(--color-neutral) var(--val)
-        );
-      }
-
-      .slider::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        appearance: none;
-        width: 1rem;
-        height: 1rem;
-        border-radius: 9999px;
-        background: var(--color-primary);
-        border: 2px solid var(--color-primary-content);
-        box-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
-        margin-top: -0.25rem;
-        transition:
-          background 0.2s,
-          transform 0.1s;
-      }
-
-      .slider:active::-webkit-slider-thumb {
-        outline: 2px solid var(--color-primary);
-        outline-offset: 2px;
-      }
-    `,
-  ],
 })
 export class DeviceComponent {
+  private readonly store = inject(Store);
+
   private readonly soundService = inject(SoundService);
 
-  readonly device = input.required<PwDevice>();
+  readonly device = input.required<PwDeviceExtended>();
 
   readonly type = input.required<'input' | 'output'>();
 
   readonly default = input(false);
 
   readonly enumRoutes = computed(() => {
-    const enumRoutes = this.soundService
-      .deviceEnumRoutes()
-      .get(this.device().id);
-
-    if (!enumRoutes) return [];
-
-    return enumRoutes[this.type()].values().toArray();
+    return Object.values(this.device().enumRoutes[this.type()]);
   });
 
   readonly currentRoute = computed(() => {
-    const route = this.soundService.deviceRoute().get(this.device().id);
-    if (route) return route[this.type()];
-    return undefined;
+    return this.device().route[this.type()];
   });
 
   readonly volume = computed(() => {
-    return Math.round((this.currentRoute()?.volume[0] ?? 0) * 100);
+    let v = this.isChanging()
+      ? this.value()
+      : (this.currentRoute()?.volume[0] ?? 0);
+
+    return Math.round(v * 100);
   });
 
   readonly value = signal(0);
@@ -113,16 +69,11 @@ export class DeviceComponent {
 
   constructor() {
     effect(() => {
-      // this.soundService.deviceEnumProfiles();
-    });
-
-    effect(() => {
       this.routeControl.set(this.currentRoute()?.index);
     });
 
     effect(() => {
-      if (!this.isChanging())
-        this.value.set(this.currentRoute()?.volume[0] ?? 0);
+      this.value.set(this.currentRoute()?.volume[0] ?? 0);
     });
   }
 

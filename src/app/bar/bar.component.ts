@@ -6,16 +6,10 @@ import { ClockComponent } from './clock/clock.component';
 import { PowerMenuComponent } from './power-menu/power-menu.component';
 import { RouterOutlet } from '@angular/router';
 import { SoundComponent } from './sound/sound.component';
-import { fromTauriEvent } from '../common/tauri-utils';
-import { map } from 'rxjs';
-import { toSignal } from '@angular/core/rxjs-interop';
 import { EthernetComponent } from './ethernet/ethernet.component';
 import { TrayComponent } from './tray/tray.component';
-
-interface ActiveWindow {
-  class: string;
-  title: string;
-}
+import { Store } from '@ngrx/store';
+import { selectActiveWindow } from '../reducers/hyprland/hyprland.selectors';
 
 @Component({
   selector: 'app-bar',
@@ -34,15 +28,9 @@ interface ActiveWindow {
 })
 export class BarComponent {
   readonly barService = inject(BarService);
+  private readonly store = inject(Store);
 
-  readonly activeWindow = toSignal(
-    fromTauriEvent<ActiveWindow>('active_window_change').pipe(
-      map((res) => res.title),
-    ),
-    {
-      initialValue: '',
-    },
-  );
+  readonly activeWindow = this.store.selectSignal(selectActiveWindow);
 
   ngOnInit(): void {
     this.barService.init();

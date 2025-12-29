@@ -1,8 +1,15 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { DeviceComponent } from './device/device.component';
 import { NodeComponent } from './node/node.component';
 import { DeviceConfigComponent } from './device-config/device-config.component';
-import { SoundService } from './sound.service';
+import { Store } from '@ngrx/store';
+import {
+  selectDefaultSink,
+  selectDefaultSource,
+  selectDevicesList,
+  selectPlaybacks,
+  selectRecordings,
+} from '../reducers/pipewire/pipewire.selectors';
 
 const menuOptions = [
   'output',
@@ -20,9 +27,17 @@ type MenuOption = (typeof menuOptions)[number];
   imports: [DeviceComponent, NodeComponent, DeviceConfigComponent],
 })
 export class SoundComponent {
-  readonly soundService = inject(SoundService);
+  private readonly store = inject(Store);
 
   readonly tab = signal<MenuOption>('output');
+
+  readonly devices = this.store.selectSignal(selectDevicesList);
+
+  readonly defaultSink = this.store.selectSignal(selectDefaultSink);
+  readonly defaultSource = this.store.selectSignal(selectDefaultSource);
+
+  readonly playbacks = this.store.selectSignal(selectPlaybacks);
+  readonly recordings = this.store.selectSignal(selectRecordings);
 
   readonly menuOptions = [
     { value: 'output', label: 'Wyjścia' },
@@ -31,26 +46,4 @@ export class SoundComponent {
     { value: 'recording', label: 'Nagrywanie' },
     { value: 'config', label: 'Konfiguracja' },
   ] as const;
-
-  readonly playbacks = computed(() => {
-    return this.soundService
-      .nodes()
-      .values()
-      .filter((node) => node.class === 'Stream/Output/Audio')
-      .toArray();
-  });
-
-  readonly recordings = computed(() => {
-    return this.soundService
-      .nodes()
-      .values()
-      .filter((node) => node.class === 'Stream/Input/Audio')
-      .toArray();
-  });
-
-  constructor() {
-    effect(() => {
-      // console.log(this.soundService.deviceEnumRoutes());
-    });
-  }
 }

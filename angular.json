@@ -14,7 +14,7 @@
       "sourceRoot": "src",
       "prefix": "app",
       "i18n": {
-	"sourceLocale": "pl"
+        "sourceLocale": "pl"
       },
       "architect": {
         "build": {
@@ -96,5 +96,10 @@
         }
       }
     }
+  },
+  "cli": {
+    "schematicCollections": [
+      "@ngrx/schematics"
+    ]
   }
 }

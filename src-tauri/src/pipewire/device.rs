@@ -258,9 +258,12 @@ pub fn handle_pipewire_device(
         })
         .param({
             let sender = event_sender.clone();
-            move |_, param_type, _, _, p5| {
+
+            move |_seq, param_type, p3, p4, p5| {
+                println!("DDD {:?} {:?} {:?}", _seq, p3, p4);
                 match param_type {
                     ParamType::EnumProfile => {
+                        println!("=====ENUM PROFILE====");
                         if let Some(enum_profile) = extract_profile(id, p5) {
                             sender
                                 .send(PwEvent::DeviceEnumProfile(enum_profile))
@@ -268,6 +271,7 @@ pub fn handle_pipewire_device(
                         }
                     }
                     ParamType::EnumRoute => {
+                        println!("=====ENUM ROUTE====");
                         if let Some(enum_route) = extract_route(id, p5) {
                             sender.send(PwEvent::DeviceEnumRoute(enum_route)).unwrap();
                         }
