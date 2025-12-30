@@ -115,6 +115,8 @@ export class ComboComponent<ItemType extends any>
         });
       });
 
+      console.log('BBBB');
+
       onCleanup(() => {
         sub.unsubscribe();
       });
@@ -124,6 +126,7 @@ export class ComboComponent<ItemType extends any>
       const dataSource = this.dataSource();
       const sub = new Subscription();
 
+      console.log('CCCCC');
       if (!dataSource) return;
 
       if (dataSource.type === 'data-source') {
@@ -194,7 +197,7 @@ export class ComboComponent<ItemType extends any>
 
     effect(() => {
       const dataSource = this.dataSource();
-
+      console.log('DDDDD');
       if (!dataSource) return;
 
       if (

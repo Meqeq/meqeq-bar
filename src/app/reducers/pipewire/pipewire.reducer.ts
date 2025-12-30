@@ -1,17 +1,15 @@
 import { createFeature, createReducer, on } from '@ngrx/store';
 import { PipewireActions } from './pipewire.actions';
 import {
-  PwNode,
-  PwNodeProps,
   PwDeviceExtended,
   PwRouteDirection,
+  PwNodeExtended,
 } from './pipewire.schema';
 
 export const pipewireFeatureKey = 'pipewire';
 
 export interface State {
-  nodes: Record<number, PwNode>;
-  nodesProps: Record<number, PwNodeProps>;
+  nodes: Record<number, PwNodeExtended>;
   devices: Record<number, PwDeviceExtended>;
   defaultSinkName: string;
   defaultSourceName: string;
@@ -19,7 +17,6 @@ export interface State {
 
 export const initialState: State = {
   nodes: {},
-  nodesProps: {},
   devices: {},
   defaultSinkName: '',
   defaultSourceName: '',
@@ -31,25 +28,30 @@ export const reducer = createReducer(
     ...state,
     nodes: {
       ...state.nodes,
-      [node.id]: node,
+      [node.id]: { ...node, props: undefined },
     },
   })),
   on(PipewireActions.nodeRemoved, (state, { node }) => {
     const { [node]: ignored, ...newNodes } = state.nodes;
-    const { [node]: ignoredProps, ...newProps } = state.nodesProps;
 
     return {
       ...state,
       nodes: newNodes,
-      nodesProps: newProps,
     };
   }),
   on(PipewireActions.nodePropsSet, (state, { props }) => {
+    const node = state.nodes[props.id];
+
+    if (!node) return state;
+
     return {
       ...state,
-      nodesProps: {
-        ...state.nodesProps,
-        [props.id]: props,
+      nodes: {
+        ...state.nodes,
+        [node.id]: {
+          ...node,
+          props,
+        },
       },
     };
   }),

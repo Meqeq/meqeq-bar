@@ -1,0 +1,40 @@
+<div class="bg-base-200 rounded-field p-2 gap-4 flex">
+  <div class="flex-1">
+    <label class="text-sm mb-2">Route</label>
+    <select class="select block" [(ngModel)]="route">
+      @for (route of enumRoutes(); track route.index) {
+        <option [value]="route.index">{{ route.description }}</option>
+      }
+    </select>
+  </div>
+
+  <div class="flex-1">
+    <label class="text-sm pb-1">Profile</label>
+    <select class="select" [(ngModel)]="profile">
+      @for (profile of enumProfiles(); track profile.index) {
+        <option [value]="profile.index">{{ profile.description }}</option>
+      }
+    </select>
+  </div>
+</div>
+<!-- <div class="flex"> -->
+<!--   <app-combo -->
+<!--     class="flex-1" -->
+<!--     valueKey="index" -->
+<!--     displayKey="description" -->
+<!--     [items]="enumRoutes()" -->
+<!--     [rowTemplate]="row" -->
+<!--     [(ngModel)]="routeControl" -->
+<!--     (selectedChange)="changeRoute($event)" -->
+<!--   > -->
+<!--     <ng-template #row let-route> -->
+<!--       <div class="flex justify-between items-center"> -->
+<!--         {{ route.description }} -->
+
+<!--         @if (!route.available) { -->
+<!--           <div class="badge badge-xs badge-neutral">Niedostępny</div> -->
+<!--         } -->
+<!--       </div> -->
+<!--     </ng-template> -->
+<!--   </app-combo> -->
+<!-- </div> -->

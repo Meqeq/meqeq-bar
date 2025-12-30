@@ -1,7 +1,11 @@
-import { Component, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  signal,
+} from '@angular/core';
 import { DeviceComponent } from './device/device.component';
 import { NodeComponent } from './node/node.component';
-import { DeviceConfigComponent } from './device-config/device-config.component';
 import { Store } from '@ngrx/store';
 import {
   selectDefaultSink,
@@ -11,20 +15,15 @@ import {
   selectRecordings,
 } from '../reducers/pipewire/pipewire.selectors';
 
-const menuOptions = [
-  'output',
-  'input',
-  'playback',
-  'recording',
-  'config',
-] as const;
+const menuOptions = ['output', 'input', 'playback', 'recording'] as const;
 
 type MenuOption = (typeof menuOptions)[number];
 
 @Component({
   selector: 'app-sound',
   templateUrl: './sound.component.html',
-  imports: [DeviceComponent, NodeComponent, DeviceConfigComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [DeviceComponent, NodeComponent],
 })
 export class SoundComponent {
   private readonly store = inject(Store);
@@ -44,6 +43,5 @@ export class SoundComponent {
     { value: 'input', label: 'Wejścia' },
     { value: 'playback', label: 'Odtwarzanie' },
     { value: 'recording', label: 'Nagrywanie' },
-    { value: 'config', label: 'Konfiguracja' },
   ] as const;
 }

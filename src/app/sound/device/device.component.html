@@ -1,79 +1,35 @@
-<li class="list-row block" [class.text-gray-700!]="!currentRoute()">
-  <div class="flex">
-    <div class="flex-1" [class.opacity-75]="!default()">
-      <div>{{ device().description }}</div>
-      <div class="text-xs uppercase font-semibold opacity-60">
-        {{ device().mixerName }}
-      </div>
-    </div>
-    <div class="flex gap-2">
-      <button
-        class="btn btn-ghost btn-square"
-        [class.text-primary]="default()"
-        (click)="setDefault()"
-      >
-        <lucide-icon [img]="icons.check" [size]="20"></lucide-icon>
-      </button>
-      <button class="btn btn-square btn-ghost" (click)="changeMute()">
-        <lucide-icon
-          [img]="
-            currentRoute()?.mute ? icons[type()].muted : icons[type()].unmuted
-          "
-          [size]="20"
-        ></lucide-icon>
-      </button>
-      <button
-        class="btn btn-square"
-        [class.btn-ghost]="!showSettings()"
-        [class.btn-secondary]="showSettings()"
-        (click)="showSettings.set(!showSettings())"
-      >
-        <lucide-icon [img]="icons.settings" [size]="20"></lucide-icon>
-      </button>
-    </div>
-  </div>
+<li
+  class="list-row flex flex-col gap-4 rounded-none {{
+    default() ? 'bg-base-content/3' : ''
+  }} {{ disabled() ? 'bg-base-300/50' : '' }}"
+  [class.opacity-80]="!default()"
+>
+  <app-node-header
+    [type]="type()"
+    [default]="default()"
+    [disabled]="disabled()"
+    [title]="device().description"
+    [description]="device().mixerName"
+    [muted]="currentRoute()?.mute ?? false"
+    [(showSettings)]="showSettings"
+    (mutedChange)="changeMute($event)"
+    (defaultChange)="setDefault()"
+  />
 
-  <div class="flex py-2 gap-4 items-center" [class.opacity-60]="!default()">
-    <div class="flex-1 flex">
-      <input
-        class="slider flex-1 h-1 bg-base-300 m-0"
-        type="range"
-        step="0.01"
-        min="0"
-        max="1"
-        [style.--val]="`${value() * 100}%`"
-        [(ngModel)]="value"
-        (ngModelChange)="changeVolume()"
-        (focus)="isChanging.set(true)"
-        (blur)="isChanging.set(false)"
-      />
-    </div>
-    <div class="w-14 font-bold badge badge-sm badge-primary">
-      {{ volume() }}%
-    </div>
-  </div>
+  <app-volume-slider
+    [disabled]="disabled()"
+    [volume]="volume()"
+    (volumeChange)="changeVolume($event)"
+  />
 
   @if (showSettings()) {
-    <div class="flex">
-      <app-combo
-        class="flex-1"
-        valueKey="index"
-        displayKey="description"
-        [items]="enumRoutes()"
-        [rowTemplate]="row"
-        [(ngModel)]="routeControl"
-        (selectedChange)="changeRoute($event)"
-      >
-        <ng-template #row let-route>
-          <div class="flex justify-between items-center">
-            {{ route.description }}
-
-            @if (!route.available) {
-              <div class="badge badge-xs badge-neutral">Niedostępny</div>
-            }
-          </div>
-        </ng-template>
-      </app-combo>
-    </div>
+    <app-device-config
+      [enumRoutes]="enumRoutes()"
+      [enumProfiles]="enumProfiles()"
+      [route]="currentRoute()?.index ?? -1"
+      [profile]="currentProfile()?.index ?? -1"
+      (routeChange)="changeRoute($event)"
+      (profileChange)="changeProfile($event)"
+    />
   }
 </li>

@@ -22,6 +22,10 @@ export interface PwNode {
   description: string;
 }
 
+export interface PwNodeExtended extends PwNode {
+  props: PwNodeProps | undefined;
+}
+
 export interface PwNodeProps {
   id: number;
   volume: [number, number];

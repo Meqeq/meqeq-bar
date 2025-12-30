@@ -1,5 +1,5 @@
-import { Injectable } from '@angular/core';
-import { createEffect } from '@ngrx/effects';
+import { Injectable, inject } from '@angular/core';
+import { Actions, createEffect, ofType } from '@ngrx/effects';
 
 import { PipewireActions } from './pipewire.actions';
 import { fromTauriEvent } from '../../common/tauri-utils';
@@ -9,16 +9,31 @@ import {
   PwDevice,
   PwEnumRoutes,
   PwRouteDirection,
-} from './pipewire.schema';
-import { debounceTime, groupBy, map, mergeAll, scan } from 'rxjs';
-import {
-  PwDefault,
-  PwDeviceProfile,
   PwDeviceRoute,
-} from '../../sound/sound.schema';
+  PwDeviceProfile,
+  PwDefault,
+} from './pipewire.schema';
+import {
+  debounceTime,
+  from,
+  groupBy,
+  map,
+  mergeAll,
+  scan,
+  switchMap,
+  throwError,
+  withLatestFrom,
+} from 'rxjs';
+import { invoke } from '@tauri-apps/api/core';
+import { Store } from '@ngrx/store';
+import { State } from './pipewire.reducer';
+import { selectDevices, selectNodes } from './pipewire.selectors';
 
 @Injectable()
 export class PipewireEffects {
+  private readonly actions$ = inject(Actions);
+  private readonly store = inject(Store<State>);
+
   readonly addNode$ = createEffect(() => {
     return fromTauriEvent<PwNode>('pw_node').pipe(
       map((node) => PipewireActions.nodeAdded({ node })),
@@ -45,18 +60,6 @@ export class PipewireEffects {
       map((device) => PipewireActions.deviceAdded({ device })),
     );
   });
-
-  // readonly enumRoutes$ = createEffect(() => {
-  //   return fromTauriEvent<PwDeviceRoute>('pw_device_enum_route').pipe(
-  //     map((enumRoute) => PipewireActions.enumRouteAdded({ enumRoute })),
-  //   );
-  // });
-
-  // readonly enumProfiles$ = createEffect(() => {
-  //   return fromTauriEvent<PwDeviceProfile>('pw_device_enum_profile').pipe(
-  //     map((enumProfile) => PipewireActions.enumProfileAdded({ enumProfile })),
-  //   );
-  // });
 
   readonly routes$ = createEffect(() => {
     return fromTauriEvent<PwDeviceRoute>('pw_device_route').pipe(
@@ -154,5 +157,220 @@ export class PipewireEffects {
     );
   });
 
-  constructor() {}
+  readonly changeDeviceVolume$ = createEffect(
+    () => {
+      return this.actions$.pipe(
+        ofType(PipewireActions.changeDeviceVolume),
+        withLatestFrom(this.store.select(selectDevices)),
+        switchMap(([{ id, volume, routeType }, devices]) => {
+          const device = devices[id];
+          if (!device) return throwError(() => new Error('Device not found'));
+
+          const route = device.route[routeType];
+          if (!route) return throwError(() => new Error('Route not found'));
+
+          return from(
+            invoke('set_device_volume', {
+              id,
+              routeIndex: route.index,
+              routeDevice: route.devices[0],
+              channelVolumes: [volume, volume],
+            }),
+          );
+        }),
+      );
+    },
+    { dispatch: false },
+  );
+
+  readonly muteDevice$ = createEffect(
+    () => {
+      return this.actions$.pipe(
+        ofType(PipewireActions.muteDevice),
+        withLatestFrom(this.store.select(selectDevices)),
+        switchMap(([{ id, routeType }, devices]) => {
+          const device = devices[id];
+          if (!device) return throwError(() => new Error('Device not found'));
+
+          const route = device.route[routeType];
+          if (!route) return throwError(() => new Error('Route not found'));
+
+          return from(
+            invoke('set_device_mute', {
+              id,
+              routeIndex: route.index,
+              routeDevice: route.devices[0],
+              mute: true,
+            }),
+          );
+        }),
+      );
+    },
+    { dispatch: false },
+  );
+
+  readonly unmuteDevice$ = createEffect(
+    () => {
+      return this.actions$.pipe(
+        ofType(PipewireActions.unmuteDevice),
+        withLatestFrom(this.store.select(selectDevices)),
+        switchMap(([{ id, routeType }, devices]) => {
+          const device = devices[id];
+          if (!device) return throwError(() => new Error('Device not found'));
+
+          const route = device.route[routeType];
+          if (!route) return throwError(() => new Error('Route not found'));
+
+          return from(
+            invoke('set_device_mute', {
+              id,
+              routeIndex: route.index,
+              routeDevice: route.devices[0],
+              mute: false,
+            }),
+          );
+        }),
+      );
+    },
+    { dispatch: false },
+  );
+
+  readonly setDefaultSink$ = createEffect(
+    () => {
+      return this.actions$.pipe(
+        ofType(PipewireActions.setDefaultSink),
+        withLatestFrom(this.store.select(selectNodes)),
+        switchMap(([{ id }, nodes]) => {
+          const node = Object.values(nodes).find(
+            (node) => node.deviceId === id,
+          );
+
+          if (!node) return throwError(() => new Error('Node not found'));
+
+          return from(
+            invoke('set_default_sink', {
+              sink: JSON.stringify({ name: node.name }),
+            }),
+          );
+        }),
+      );
+    },
+    { dispatch: false },
+  );
+
+  readonly setDefaultSource$ = createEffect(
+    () => {
+      return this.actions$.pipe(
+        ofType(PipewireActions.setDefaultSource),
+        withLatestFrom(this.store.select(selectNodes)),
+        switchMap(([{ id }, nodes]) => {
+          const node = Object.values(nodes).find(
+            (node) => node.deviceId === id,
+          );
+
+          if (!node) return throwError(() => new Error('Node not found'));
+
+          return from(
+            invoke('set_default_source', {
+              source: JSON.stringify({ name: node.name }),
+            }),
+          );
+        }),
+      );
+    },
+    { dispatch: false },
+  );
+
+  readonly setDeviceRoute$ = createEffect(
+    () => {
+      return this.actions$.pipe(
+        ofType(PipewireActions.setDeviceRoute),
+        withLatestFrom(this.store.select(selectDevices)),
+        switchMap(([{ id, routeType, routeIndex }, devices]) => {
+          const device = devices[id];
+          if (!device) return throwError(() => new Error('Device not found'));
+
+          const route = device.enumRoutes[routeType][routeIndex];
+          if (!route) return throwError(() => new Error('Route not found'));
+
+          return from(
+            invoke('set_device_route', {
+              id,
+              routeIndex: route.index,
+              routeDevice: route.devices[0],
+            }),
+          );
+        }),
+      );
+    },
+    { dispatch: false },
+  );
+
+  readonly setDeviceProfile$ = createEffect(
+    () => {
+      return this.actions$.pipe(
+        ofType(PipewireActions.setDeviceProfile),
+        switchMap(({ id, profileIndex }) => {
+          return from(
+            invoke('set_device_profile', {
+              id,
+              profileIndex,
+            }),
+          );
+        }),
+      );
+    },
+    { dispatch: false },
+  );
+
+  readonly changeNodeVolume$ = createEffect(
+    () => {
+      return this.actions$.pipe(
+        ofType(PipewireActions.changeNodeVolume),
+        switchMap(({ id, volume }) => {
+          return from(
+            invoke('set_node_volume', {
+              id,
+              channelVolumes: [volume, volume],
+            }),
+          );
+        }),
+      );
+    },
+    { dispatch: false },
+  );
+
+  readonly muteNode$ = createEffect(
+    () => {
+      return this.actions$.pipe(
+        ofType(PipewireActions.muteNode),
+        switchMap(({ id }) => {
+          return from(
+            invoke('set_node_mute', {
+              id,
+              mute: true,
+            }),
+          );
+        }),
+      );
+    },
+    { dispatch: false },
+  );
+
+  readonly unmuteNode$ = createEffect(
+    () => {
+      return this.actions$.pipe(
+        ofType(PipewireActions.unmuteNode),
+        switchMap(({ id }) => {
+          return from(
+            invoke('set_node_mute', {
+              id,
+              mute: false,
+            }),
+          );
+        }),
+      );
+    },
+    { dispatch: false },
+  );
 }

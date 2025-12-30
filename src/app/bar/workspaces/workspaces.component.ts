@@ -5,6 +5,7 @@ import {
   selectActiveWorkspace,
   selectWorkspaces,
 } from '../../reducers/hyprland/hyprland.selectors';
+import { HyprlandActions } from '../../reducers/hyprland/hyprland.actions';
 
 @Component({
   selector: 'app-workspaces',
@@ -17,6 +18,6 @@ export class WorkspacesComponent {
   readonly activeWorkspace = this.store.selectSignal(selectActiveWorkspace);
 
   setCurrentWorkspace(id: number): void {
-    invoke('set_current_workspace', { id });
+    this.store.dispatch(HyprlandActions.setActiveWorkspace({ id }));
   }
 }

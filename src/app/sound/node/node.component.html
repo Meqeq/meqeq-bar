@@ -1,39 +1,13 @@
-<li class="list-row block">
-  <div class="flex">
-    <div class="flex-1">
-      <div>{{ node().nick || node().name }}</div>
+<li class="list-row flex flex-col gap-4 rounded-none">
+  <app-node-header
+    [type]="type()"
+    [title]="node().name"
+    [muted]="muted()"
+    (mutedChange)="changeMute($event)"
+  />
 
-      <div class="text-xs uppercase font-semibold opacity-60">
-        {{ node().description }}
-      </div>
-    </div>
-    <div class="flex gap-2">
-      <button class="btn btn-square btn-ghost" (click)="changeMute()">
-        <lucide-icon
-          [img]="props()?.muted ? icons[type()].muted : icons[type()].unmuted"
-          [size]="20"
-        ></lucide-icon>
-      </button>
-    </div>
-  </div>
-
-  <div class="flex py-2 gap-4 items-center">
-    <div class="flex-1 flex">
-      <input
-        class="slider flex-1 h-1 bg-base-300 m-0"
-        type="range"
-        step="0.01"
-        min="0"
-        max="1"
-        [style.--val]="`${value() * 100}%`"
-        [(ngModel)]="value"
-        (ngModelChange)="changeVolume()"
-        (click)="$event.stopPropagation()"
-      />
-    </div>
-
-    <div class="badge badge-sm w-13 badge-primary text-primary-content">
-      {{ volume() * 100 | number: "1.0-0" }}%
-    </div>
-  </div>
+  <app-volume-slider
+    [volume]="volume()"
+    (volumeChange)="changeVolume($event)"
+  />
 </li>

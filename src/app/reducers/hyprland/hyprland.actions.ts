@@ -7,5 +7,6 @@ export const HyprlandActions = createActionGroup({
     Workspaces: props<{ workspaces: WorkspaceInfo[] }>(),
     'Active window': props<{ activeWindow: ActiveWindow }>(),
     'Active workspace': props<{ activeWorkspace: number }>(),
+    'Set active workspace': props<{ id: number }>(),
   },
 });

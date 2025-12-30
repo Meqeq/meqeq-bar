@@ -1,5 +1,7 @@
-<div class="bg-base-100 p-4 rounded-box flex flex-col items-center w-148">
-  <ul class="menu menu-xs menu-horizontal bg-base-200 rounded-box self-start">
+<div class="bg-base-200 p-4 rounded-box flex flex-col items-center w-148">
+  <ul
+    class="menu menu-xs menu-horizontal bg-base-100 rounded-field self-start mb-4"
+  >
     @for (option of menuOptions; track $index) {
       <li>
         <a
@@ -12,43 +14,34 @@
     }
   </ul>
 
-  <ul class="list bg-base-100 rounded-box shadow-md w-full">
+  <ul class="list bg-base-100 rounded-field w-full overflow-hidden">
     @switch (tab()) {
       @case ("output") {
         @for (device of devices(); track device.id) {
-          <app-device
-            type="output"
-            [device]="device"
-            [default]="defaultSink() === device"
-          ></app-device>
+          <app-device type="output" [device]="device"></app-device>
         } @empty {
           <div class="list-row">Pusto</div>
         }
       }
       @case ("input") {
         @for (device of devices(); track device.id) {
-          <app-device
-            type="input"
-            [device]="device"
-            [default]="defaultSource() === device"
-          ></app-device>
-        }
-      }
-      @case ("playback") {
-        @for (node of playbacks(); track node.id) {
-          <app-node [node]="node" type="output"></app-node>
-        }
-      }
-      @case ("recording") {
-        @for (node of recordings(); track node.id) {
-          <app-node [node]="node" type="input"></app-node>
+          <app-device type="input" [device]="device"></app-device>
         } @empty {
           <div class="list-row">Pusto</div>
         }
       }
-      @case ("config") {
-        @for (device of devices(); track device.id) {
-          <app-device-config [device]="device"></app-device-config>
+      @case ("playback") {
+        @for (node of playbacks(); track node.id) {
+          <app-node type="playback" [node]="node"></app-node>
+        } @empty {
+          <div class="list-row">Pusto</div>
+        }
+      }
+      @case ("recording") {
+        @for (node of recordings(); track node.id) {
+          <app-node type="recording" [node]="node"></app-node>
+        } @empty {
+          <div class="list-row">Pusto</div>
         }
       }
     }
