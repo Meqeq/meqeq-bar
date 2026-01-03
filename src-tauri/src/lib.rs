@@ -19,6 +19,8 @@ use tauri::{App, Manager};
 
 use utils::gtk::create_bars;
 
+use crate::dbus::commands::dbus_tray_item_call_menu;
+
 fn setup(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
     let bars = create_bars(app);
 
@@ -38,7 +40,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             initialize,
             set_layer,
-            // call_tray_menu_item,
+            dbus_tray_item_call_menu,
             set_current_workspace,
             set_default_source,
             set_default_sink,

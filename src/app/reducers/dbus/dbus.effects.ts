@@ -1,17 +1,22 @@
-import { Injectable } from '@angular/core';
-import { createEffect } from '@ngrx/effects';
+import { Injectable, inject } from '@angular/core';
+import { Actions, createEffect, ofType } from '@ngrx/effects';
 
-import { map } from 'rxjs/operators';
+import { map, switchMap } from 'rxjs/operators';
 import { DbusActions } from './dbus.actions';
 import { fromTauriEvent, fromTauriEventString } from '../../common/tauri-utils';
 import {
   RegisteredTrayItem,
   TrayItemNewIcon,
+  TrayItemNewMenu,
   TrayItemNewProp,
 } from './dbus.schema';
+import { from } from 'rxjs';
+import { invoke } from '@tauri-apps/api/core';
 
 @Injectable()
 export class DbusEffects {
+  private readonly actions$ = inject(Actions);
+
   readonly registeredTrayItems$ = createEffect(() => {
     return fromTauriEvent<RegisteredTrayItem>('dbus_register_tray_item').pipe(
       map((item) => DbusActions.registerTrayItem({ item })),
@@ -44,4 +49,27 @@ export class DbusEffects {
       map((prop) => DbusActions.trayItemNewProp(prop)),
     );
   });
+
+  readonly trayItemMenus$ = createEffect(() => {
+    return fromTauriEvent<TrayItemNewMenu>('dbus_tray_item_new_menu').pipe(
+      map((menu) => DbusActions.trayItemNewMenu(menu)),
+    );
+  });
+
+  readonly calls$ = createEffect(
+    () => {
+      return this.actions$.pipe(
+        ofType(DbusActions.callTrayMenuOption),
+        switchMap(({ itemId, entryId }) => {
+          return from(
+            invoke('dbus_tray_item_call_menu', {
+              itemId,
+              entryId,
+            }),
+          );
+        }),
+      );
+    },
+    { dispatch: false },
+  );
 }

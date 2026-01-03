@@ -1,13 +1,6 @@
-use serde::{Deserialize, Serialize};
-use tauri::{command, AppHandle, Manager};
+use tauri::{AppHandle, Manager, command};
 
 use crate::app_state::AppState;
-
-#[derive(Debug, Default, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct PwSetDefault {
-    id: u32,
-}
 
 #[derive(Debug)]
 pub enum PwCommand {

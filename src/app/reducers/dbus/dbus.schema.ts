@@ -26,4 +26,22 @@ export interface TrayItem {
   icon: string;
   title: string;
   status: TrayItemStatus;
+  menu: MenuEntry[];
+}
+
+export enum MenuEntryType {
+  Entry = 'entry',
+  Separator = 'separator',
+}
+
+export interface MenuEntry {
+  id: number;
+  label: string;
+  visible: boolean;
+  type: MenuEntryType;
+}
+
+export interface TrayItemNewMenu {
+  id: string;
+  menu: MenuEntry[];
 }

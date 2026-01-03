@@ -8,6 +8,7 @@ use crate::dbus::commands::handle_commands;
 use crate::dbus::events::{DbusEvent, handle_events};
 use crate::dbus::status_notifier_host::run_host;
 use crate::dbus::status_notifier_watcher::run_watcher;
+use crate::dbus::utils::TrayItemHandles;
 
 use super::commands::DbusCommand;
 
@@ -27,17 +28,19 @@ pub fn init_dbus(handle: &AppHandle) -> DbusState {
 
     let handle = handle.clone();
 
+    let tray_item_handles = TrayItemHandles::new();
+
     async_runtime::spawn(async move {
         sleep(Duration::from_millis(100)).await;
 
         let state = handle.state::<AppState>();
-
         state.wait_for_initialization().await;
+
         let _ = tokio::join!(
-            run_host(event_tx),
+            run_host(event_tx, tray_item_handles.clone()),
             run_watcher(),
             handle_events(&handle, &mut event_rx),
-            handle_commands(&mut command_rx)
+            handle_commands(&mut command_rx, tray_item_handles)
         );
     });
 

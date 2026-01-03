@@ -18,12 +18,12 @@ export const reducer = createReducer(
     ...state,
     trayItems: {
       ...state.trayItems,
-      [item.id]: { ...item, icon: '' },
+      [item.id]: { ...item, icon: '', menu: [] },
     },
   })),
   on(DbusActions.unregisterTrayItem, (state, { id }) => {
     const { [id]: ignored, ...trayItems } = state.trayItems;
-    console.log('DDDUDUDUDUDUD');
+
     return {
       ...state,
       trayItems,
@@ -57,6 +57,22 @@ export const reducer = createReducer(
         [item.id]: {
           ...item,
           [propName]: prop,
+        },
+      },
+    };
+  }),
+  on(DbusActions.trayItemNewMenu, (state, { id, menu }) => {
+    const item = state.trayItems[id];
+
+    if (!item) return state;
+
+    return {
+      ...state,
+      trayItems: {
+        ...state.trayItems,
+        [item.id]: {
+          ...item,
+          menu,
         },
       },
     };

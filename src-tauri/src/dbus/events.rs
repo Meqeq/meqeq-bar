@@ -16,10 +16,26 @@ pub struct TrayItemNewIcon {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct TrayItemNewProp {
     pub id: String,
     pub prop_name: String,
     pub prop: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct MenuEntry {
+    pub id: i32,
+    pub label: String,
+    pub visible: bool,
+    pub type_: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct TrayItemNewMenu {
+    pub id: String,
+    pub menu: Vec<MenuEntry>,
 }
 
 pub enum DbusEvent {
@@ -28,6 +44,7 @@ pub enum DbusEvent {
 
     TrayItemNewIcon(TrayItemNewIcon),
     TrayItemNewProp(TrayItemNewProp),
+    TrayItemNewMenu(TrayItemNewMenu),
 }
 
 pub async fn handle_events(app: &AppHandle, event_rx: &mut Receiver<DbusEvent>) {
@@ -54,6 +71,13 @@ pub async fn handle_events(app: &AppHandle, event_rx: &mut Receiver<DbusEvent>) 
                 app.emit(
                     "dbus_tray_item_new_prop",
                     serde_json::to_string(&prop).unwrap(),
+                )
+                .unwrap();
+            }
+            DbusEvent::TrayItemNewMenu(menu) => {
+                app.emit(
+                    "dbus_tray_item_new_menu",
+                    serde_json::to_string(&menu).unwrap(),
                 )
                 .unwrap();
             }
