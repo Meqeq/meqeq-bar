@@ -1,5 +1,4 @@
 import { Component, inject } from '@angular/core';
-import { invoke } from '@tauri-apps/api/core';
 import { Store } from '@ngrx/store';
 import {
   selectActiveWorkspace,

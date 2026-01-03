@@ -1,6 +1,6 @@
 mod app_state;
 mod commands;
-// mod dbus;
+mod dbus;
 mod hyprland;
 mod pipewire;
 mod utils;
@@ -8,6 +8,7 @@ mod utils;
 use app_state::AppState;
 use commands::{initialize, run_menu, set_layer};
 
+use dbus::run::init_dbus;
 use hyprland::{commands::set_current_workspace, init::init_hyprland};
 use pipewire::commands::{
     set_default_sink, set_default_source, set_device_mute, set_device_profile, set_device_route,
@@ -23,8 +24,9 @@ fn setup(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
 
     let hyprland = init_hyprland(app.handle());
     let pipewire = init_pipewire(app.handle());
+    let dbus = init_dbus(app.handle());
 
-    app.manage(AppState::new(bars, hyprland, pipewire));
+    app.manage(AppState::new(bars, hyprland, pipewire, dbus));
 
     Ok(())
 }

@@ -1,11 +1,8 @@
 import { Component, effect, inject } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { invoke } from '@tauri-apps/api/core';
-import { map, merge, Observable, scan } from 'rxjs';
 
-import { fromTauriEvent } from '../../common/tauri-utils';
-import { BarService } from '../bar.service';
 import { PopoverService } from '../../common/popover.service';
+import { Store } from '@ngrx/store';
+import { selectTrayItemsArray } from '../../reducers/dbus/dbus.selectors';
 
 @Component({
   selector: 'app-tray',
@@ -13,16 +10,20 @@ import { PopoverService } from '../../common/popover.service';
   imports: [],
 })
 export class TrayComponent {
+  private readonly store = inject(Store);
   readonly popoverService = inject(PopoverService);
-  readonly barService = inject(BarService);
+  // readonly barService = inject(BarService);
 
-  callMenuItem(params: { service: string; path: string; id: number }): void {
-    invoke('call_tray_menu_item', params);
-  }
+  readonly items = this.store.selectSignal(selectTrayItemsArray);
 
-  constructor() {
-    effect(() => {
-      console.log(this.barService.trayItems());
-    });
-  }
+  // callMenuItem(params: { service: string; path: string; id: number }): void {
+  //   invoke('call_tray_menu_item', params);
+  // }
+
+  // constructor() {
+  //   effect(() => {
+  //     console.log(this.barService.trayItems());
+  // dd
+  //   });
+  // }
 }

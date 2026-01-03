@@ -1,4 +1,4 @@
-import { createActionGroup, emptyProps, props } from '@ngrx/store';
+import { createActionGroup, props } from '@ngrx/store';
 import { ActiveWindow, WorkspaceInfo } from './hyprland.reducer';
 
 export const HyprlandActions = createActionGroup({

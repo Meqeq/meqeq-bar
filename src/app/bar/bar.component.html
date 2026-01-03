@@ -31,7 +31,7 @@
         <app-sound (click)="barService.openPopup($event, 'sound')"></app-sound>
         <app-ethernet></app-ethernet>
 
-        @if (barService.trayItems().length) {
+        @if (showTray()) {
           <div class="divider divider-horizontal w-0! mx-0 py-2"></div>
           <app-tray />
         }

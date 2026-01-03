@@ -1,18 +1,27 @@
 use tauri::async_runtime;
 use tokio::sync::{broadcast, mpsc};
 
-use crate::{hyprland::init::HyprlandState, pipewire::run::PipewireState, utils::gtk::Bar};
+use crate::{
+    dbus::run::DbusState, hyprland::init::HyprlandState, pipewire::run::PipewireState,
+    utils::gtk::Bar,
+};
 
 pub struct AppState {
     pub bars: Vec<Bar>,
     pub hyprland: HyprlandState,
     pub pipewire: PipewireState,
+    pub dbus: DbusState,
     init_count_tx: mpsc::Sender<bool>,
     init_tx: broadcast::Sender<bool>,
 }
 
 impl AppState {
-    pub fn new(bars: Vec<Bar>, hyprland: HyprlandState, pipewire: PipewireState) -> AppState {
+    pub fn new(
+        bars: Vec<Bar>,
+        hyprland: HyprlandState,
+        pipewire: PipewireState,
+        dbus: DbusState,
+    ) -> AppState {
         let to_initialize = bars.len();
 
         let (init_tx, _) = broadcast::channel(32);
@@ -32,10 +41,13 @@ impl AppState {
             init_tx_clone.send(true).unwrap();
         });
 
+        // async_runtime::spawn(async { run_dbus().await });
+
         AppState {
             bars,
             hyprland,
             pipewire,
+            dbus,
             init_count_tx,
             init_tx,
         }

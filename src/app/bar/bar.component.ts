@@ -10,6 +10,7 @@ import { EthernetComponent } from './ethernet/ethernet.component';
 import { TrayComponent } from './tray/tray.component';
 import { Store } from '@ngrx/store';
 import { selectActiveWindow } from '../reducers/hyprland/hyprland.selectors';
+import { selectTrayHasItems } from '../reducers/dbus/dbus.selectors';
 
 @Component({
   selector: 'app-bar',
@@ -31,6 +32,7 @@ export class BarComponent {
   private readonly store = inject(Store);
 
   readonly activeWindow = this.store.selectSignal(selectActiveWindow);
+  readonly showTray = this.store.selectSignal(selectTrayHasItems);
 
   ngOnInit(): void {
     this.barService.init();

@@ -1,4 +1,11 @@
-pub mod dbus_menu;
-pub mod status_notifier_host;
-pub mod status_notifier_item;
-pub mod status_notifier_watcher;
+// pub mod dbus_menu;
+// pub mod status_notifier_host;
+// pub mod status_notifier_item;
+// pub mod status_notifier_watcher;
+pub mod commands;
+pub mod events;
+pub mod run;
+mod status_notifier_host;
+mod status_notifier_item;
+mod status_notifier_watcher;
+mod utils;
