@@ -4,6 +4,7 @@ import { ActionReducer, ActionReducerMap, MetaReducer } from '@ngrx/store';
 import * as hyprland from './hyprland/hyprland.reducer';
 import * as pipewire from './pipewire/pipewire.reducer';
 import * as dbus from './dbus/dbus.reducer';
+import * as bar from './bar/bar.reducer';
 import { routerReducer, RouterReducerState } from '@ngrx/router-store';
 
 export const globalFridgeFeatureKey = 'globalFridge';
@@ -12,6 +13,7 @@ export interface State {
   [hyprland.hyprlandFeatureKey]: hyprland.State;
   [pipewire.pipewireFeatureKey]: pipewire.State;
   [dbus.dbusFeatureKey]: dbus.State;
+  [bar.barFeatureKey]: bar.State;
   router: RouterReducerState;
 }
 
@@ -19,6 +21,7 @@ export const reducers: ActionReducerMap<State> = {
   [hyprland.hyprlandFeatureKey]: hyprland.reducer,
   [pipewire.pipewireFeatureKey]: pipewire.reducer,
   [dbus.dbusFeatureKey]: dbus.reducer,
+  [bar.barFeatureKey]: bar.reducer,
   router: routerReducer,
 };
 

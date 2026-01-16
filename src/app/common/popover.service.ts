@@ -25,14 +25,14 @@ export class PopoverService {
   constructor() {
     this.renderer = this.rendererFactory.createRenderer(null, null);
 
-    const container = this.renderer.selectRootElement('body', true);
+    const container = this.renderer.selectRootElement('app-bar', true);
 
     this.popoverContainer = this.renderer.createElement('div');
 
     this.renderer.setAttribute(
       this.popoverContainer,
       'class',
-      'absolute top-0 left-0 w-screen h-screen pointer-events-none dropdown dropdown-open overflow-hidden !block',
+      'absolute top-0 left-0 w-screen h-screen dropdown dropdown-open overflow-hidden !block',
     );
 
     this.renderer.appendChild(container, this.popoverContainer);
@@ -70,7 +70,16 @@ export class PopoverService {
       this.renderer.appendChild(this.popoverContainer, backdrop);
       this.renderer.appendChild(this.popoverContainer, container);
 
-      const [posX, posY] = this.getPosition(extra.anchor, container);
+      const [posX, posY] = this.getPosition(extra.anchor, 'tl');
+
+      console.log(
+        posX,
+        posY,
+        extra.anchor.clientTop,
+        extra.anchor.offsetTop,
+        extra.anchor.scrollTop,
+        container.getBoundingClientRect(),
+      );
 
       this.renderer.setStyle(container, 'top', `${posY}px`);
       this.renderer.setStyle(container, 'left', `${posX}px`);
@@ -121,24 +130,19 @@ export class PopoverService {
 
   private getPosition(
     anchor: HTMLElement,
-    container: HTMLElement,
+    corner: 'tl' | 'tr' | 'bl' | 'br',
   ): [number, number] {
-    const screenWidth = document.body.clientWidth;
-    const screenHeight = document.body.clientHeight;
+    const rec = anchor.getBoundingClientRect();
 
-    const { clientWidth, clientHeight } = container;
-
-    const x = anchor.offsetLeft;
-    const y = anchor.offsetTop;
-
-    let resX = anchor.offsetLeft;
-    let resY = anchor.offsetTop + anchor.clientHeight;
-
-    if (x + clientWidth > screenWidth) resX -= clientWidth - anchor.clientWidth;
-
-    if (y + clientHeight > screenHeight)
-      resY -= clientHeight + anchor.clientHeight;
-
-    return [resX, resY];
+    switch (corner) {
+      case 'tl':
+        return [rec.left, rec.top];
+      case 'tr':
+        return [rec.right, rec.top];
+      case 'bl':
+        return [rec.left, rec.bottom];
+      case 'br':
+        return [rec.right, rec.bottom];
+    }
   }
 }

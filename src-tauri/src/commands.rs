@@ -1,6 +1,6 @@
 use gtk_layer_shell::{KeyboardMode, Layer, LayerShell};
 use std::process::Command;
-use tauri::{AppHandle, Manager, command};
+use tauri::{AppHandle, Emitter, Manager, command};
 
 use crate::app_state::AppState;
 
@@ -12,11 +12,13 @@ pub async fn initialize(app: AppHandle) {
 #[command]
 pub async fn set_layer(app: AppHandle, bar: usize, layer: String) {
     let app_clone = app.clone();
+    let layer_clone = layer.clone();
+
     app.run_on_main_thread(move || {
         let state = app_clone.state::<AppState>();
         let bar = state.bars.get(bar).unwrap();
 
-        if layer == "top" {
+        if layer_clone == "top" {
             bar.gtk_window.set_keyboard_mode(KeyboardMode::OnDemand);
             bar.gtk_window.set_layer(Layer::Top);
         } else {
@@ -25,6 +27,8 @@ pub async fn set_layer(app: AppHandle, bar: usize, layer: String) {
         }
     })
     .unwrap();
+
+    app.emit("bar_set_layer", layer).unwrap();
 }
 
 #[command]

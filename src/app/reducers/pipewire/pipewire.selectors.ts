@@ -73,3 +73,8 @@ export const selectRecordings = createSelector(selectNodes, (nodes) => {
     (node) => node.class === PwNodeClass.Recording,
   );
 });
+
+export const selectIsRecordingActive = createSelector(
+  selectRecordings,
+  (recordings) => !!recordings.length,
+);

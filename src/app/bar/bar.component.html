@@ -1,20 +1,10 @@
-<div class="w-screen h-screen flex flex-col justify-end items-end p-2">
-  @if (barService.isPopupOpen()) {
-    <div
-      class="absolute w-full h-full top-0 left-0"
-      (click)="barService.closePopup()"
-    ></div>
-  }
-
-  <div class="relative z-1000 py-2">
-    <router-outlet></router-outlet>
-  </div>
-
+<div
+  class="relative z-10 w-screen h-screen flex flex-col justify-end items-end p-2"
+>
   <div class="flex w-full h-8 justify-between">
     <div class="flex-1 flex">
       <div class="bg-base-100 rounded-field flex overflow-hidden">
         <app-start></app-start>
-        <!-- <div class="divider divider-horizontal w-0! mx-2"></div> -->
         <app-workspaces></app-workspaces>
       </div>
     </div>
@@ -28,7 +18,7 @@
       <div
         class="flex items-center gap-2 pl-2 bg-base-100 rounded-field overflow-hidden"
       >
-        <app-sound (click)="barService.openPopup($event, 'sound')"></app-sound>
+        <app-sound (click)="openSoundModal()"></app-sound>
         <app-ethernet></app-ethernet>
 
         @if (showTray()) {
@@ -40,7 +30,9 @@
         <app-clock
           (click)="barService.openPopup($event, 'calendar')"
         ></app-clock>
-        <app-power-menu></app-power-menu>
+        <app-power-menu
+          (click)="barService.openPopup($event, 'power-menu')"
+        ></app-power-menu>
       </div>
     </div>
   </div>

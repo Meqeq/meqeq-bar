@@ -11,6 +11,8 @@ import { TrayComponent } from './tray/tray.component';
 import { Store } from '@ngrx/store';
 import { selectActiveWindow } from '../reducers/hyprland/hyprland.selectors';
 import { selectTrayHasItems } from '../reducers/dbus/dbus.selectors';
+import { ModalService } from '../common/modal.service';
+import { SoundComponent as SoundModal } from '../sound/sound.component';
 
 @Component({
   selector: 'app-bar',
@@ -30,11 +32,16 @@ import { selectTrayHasItems } from '../reducers/dbus/dbus.selectors';
 export class BarComponent {
   readonly barService = inject(BarService);
   private readonly store = inject(Store);
+  private readonly modalService = inject(ModalService);
 
   readonly activeWindow = this.store.selectSignal(selectActiveWindow);
   readonly showTray = this.store.selectSignal(selectTrayHasItems);
 
   ngOnInit(): void {
     this.barService.init();
+  }
+
+  openSoundModal(): void {
+    this.modalService.open(SoundModal);
   }
 }
