@@ -159,7 +159,6 @@ fn extract_route(id: u32, pod: Option<&Pod>) -> Option<PwDeviceRoute> {
                                 libspa_sys::SPA_PROP_channelVolumes => {
                                     if let Value::ValueArray(ValueArray::Float(value)) = prop.value
                                     {
-                                        println!("VOLUME {:?} {:?}", value, value[0]);
                                         if value.len() == 2 {
                                             route.volume = (pw2ui(value[0]), pw2ui(value[1]));
                                         } else {

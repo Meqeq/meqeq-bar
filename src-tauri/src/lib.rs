@@ -1,4 +1,5 @@
 mod app_state;
+mod battery;
 mod commands;
 mod dbus;
 mod hyprland;
@@ -19,6 +20,7 @@ use tauri::{App, Manager};
 
 use utils::gtk::create_bars;
 
+use crate::battery::run::init_battery;
 use crate::dbus::commands::dbus_tray_item_call_menu;
 
 fn setup(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
@@ -27,6 +29,7 @@ fn setup(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
     let hyprland = init_hyprland(app.handle());
     let pipewire = init_pipewire(app.handle());
     let dbus = init_dbus(app.handle());
+    init_battery(app.handle());
 
     app.manage(AppState::new(bars, hyprland, pipewire, dbus));
 

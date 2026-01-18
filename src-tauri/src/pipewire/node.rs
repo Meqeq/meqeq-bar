@@ -151,7 +151,6 @@ pub fn handle_pipewire_node(
         .removed({
             let sender = event_sender.clone();
             move || {
-                println!("DDD");
                 sender.send(PwEvent::NodeRemoved(id)).unwrap();
             }
         })
