@@ -1,6 +1,4 @@
-<div
-  class="relative z-10 w-screen h-screen flex flex-col justify-end items-end p-2"
->
+<div class="p-2">
   <div class="flex w-full h-8 justify-between">
     <div class="flex-1 flex">
       <div class="bg-base-100 rounded-field flex overflow-hidden">
@@ -27,12 +25,8 @@
         }
 
         <div class="divider divider-horizontal w-0! mx-0 py-2"></div>
-        <app-clock
-          (click)="barService.openPopup($event, 'calendar')"
-        ></app-clock>
-        <app-power-menu
-          (click)="barService.openPopup($event, 'power-menu')"
-        ></app-power-menu>
+        <app-clock (click)="openCalendar()"></app-clock>
+        <app-power-menu (click)="openPowerMenu()"></app-power-menu>
       </div>
     </div>
   </div>

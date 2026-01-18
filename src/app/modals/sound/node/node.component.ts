@@ -5,11 +5,11 @@ import {
   inject,
   input,
 } from '@angular/core';
+import { Store } from '@ngrx/store';
 import { NodeHeaderComponent } from '../common/node-header/node-header.component';
 import { VolumeSliderComponent } from '../common/volume-slider/volume-slider.component';
-import { PwNodeExtended } from '../../reducers/pipewire/pipewire.schema';
-import { Store } from '@ngrx/store';
-import { PipewireActions } from '../../reducers/pipewire/pipewire.actions';
+import { PwNodeExtended } from '../../../reducers/pipewire/pipewire.schema';
+import { PipewireActions } from '../../../reducers/pipewire/pipewire.actions';
 
 @Component({
   selector: 'app-node',

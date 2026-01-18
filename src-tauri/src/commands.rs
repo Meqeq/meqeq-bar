@@ -37,3 +37,24 @@ pub async fn run_menu() {
         .args(["-show", "drun", "-show-icons"])
         .output();
 }
+
+#[command]
+pub async fn logout() {
+    let _ = Command::new("rofi")
+        .args(["-show", "drun", "-show-icons"])
+        .output();
+}
+
+#[command]
+pub async fn restart() {
+    let _ = Command::new("rofi")
+        .args(["-show", "drun", "-show-icons"])
+        .output();
+}
+
+#[command]
+pub async fn poweroff() {
+    let _ = Command::new("rofi")
+        .args(["-show", "drun", "-show-icons"])
+        .output();
+}

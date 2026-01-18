@@ -61,4 +61,40 @@ export class BarEffects {
     },
     { dispatch: false },
   );
+
+  readonly logout = createEffect(
+    () => {
+      return this.actions$.pipe(
+        ofType(BarActions.logout),
+        switchMap(() => {
+          return from(invoke('logout'));
+        }),
+      );
+    },
+    { dispatch: false },
+  );
+
+  readonly restart = createEffect(
+    () => {
+      return this.actions$.pipe(
+        ofType(BarActions.restart),
+        switchMap(() => {
+          return from(invoke('restart'));
+        }),
+      );
+    },
+    { dispatch: false },
+  );
+
+  readonly poweroff = createEffect(
+    () => {
+      return this.actions$.pipe(
+        ofType(BarActions.poweroff),
+        switchMap(() => {
+          return from(invoke('poweroff'));
+        }),
+      );
+    },
+    { dispatch: false },
+  );
 }

@@ -33,7 +33,13 @@ fn parse_media_class(prop: Property) -> Vec<PwMediaClass> {
             .skip(skip)
             .filter_map(|class| {
                 if let Value::Struct(class) = class {
-                    if let [Value::String(name), _, _, Value::ValueArray(ValueArray::Int(devices))] = class.as_slice() {
+                    if let [
+                        Value::String(name),
+                        _,
+                        _,
+                        Value::ValueArray(ValueArray::Int(devices)),
+                    ] = class.as_slice()
+                    {
                         return Some(PwMediaClass {
                             name: name.to_string(),
                             devices: devices.clone(),
@@ -153,7 +159,13 @@ fn extract_route(id: u32, pod: Option<&Pod>) -> Option<PwDeviceRoute> {
                                 libspa_sys::SPA_PROP_channelVolumes => {
                                     if let Value::ValueArray(ValueArray::Float(value)) = prop.value
                                     {
-                                        route.volume = (pw2ui(value[0]), pw2ui(value[1]));
+                                        println!("VOLUME {:?} {:?}", value, value[0]);
+                                        if value.len() == 2 {
+                                            route.volume = (pw2ui(value[0]), pw2ui(value[1]));
+                                        } else {
+                                            let volume = pw2ui(value[0]);
+                                            route.volume = (volume, volume);
+                                        }
                                     }
                                 }
                                 libspa_sys::SPA_PROP_mute => {

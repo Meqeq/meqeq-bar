@@ -13,19 +13,19 @@ import {
   selectDevicesList,
   selectPlaybacks,
   selectRecordings,
-} from '../reducers/pipewire/pipewire.selectors';
+} from '../../reducers/pipewire/pipewire.selectors';
 
 const menuOptions = ['output', 'input', 'playback', 'recording'] as const;
 
 type MenuOption = (typeof menuOptions)[number];
 
 @Component({
-  selector: 'app-sound',
+  selector: 'app-sound-modal',
   templateUrl: './sound.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [DeviceComponent, NodeComponent],
 })
-export class SoundComponent {
+export class SoundModalComponent {
   private readonly store = inject(Store);
 
   readonly tab = signal<MenuOption>('output');

@@ -30,14 +30,14 @@ export function debug(reducer: ActionReducer<any>): ActionReducer<any> {
     console.log('state', state);
     console.log('action', action);
 
-    if (action.type === '@ngrx/store/init') {
-      const kek = localStorage.getItem('karwasz');
-      if (kek) {
-        return reducer(JSON.parse(kek), action);
-      }
-    }
+    // if (action.type === '@ngrx/store/init') {
+    //   const kek = localStorage.getItem('karwasz');
+    //   if (kek) {
+    //     return reducer(JSON.parse(kek), action);
+    //   }
+    // }
 
-    localStorage.setItem('karwasz', JSON.stringify(state));
+    // localStorage.setItem('karwasz', JSON.stringify(state));
 
     return reducer(state, action);
   };

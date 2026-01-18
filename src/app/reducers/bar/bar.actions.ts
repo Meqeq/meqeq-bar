@@ -6,5 +6,8 @@ export const BarActions = createActionGroup({
     'Layer set': props<{ layer: 'top' | 'bottom' }>(),
     'Set top layer': emptyProps(),
     'Set bottom layer': emptyProps(),
+    Logout: emptyProps(),
+    Restart: emptyProps(),
+    Poweroff: emptyProps(),
   },
 });

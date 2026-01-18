@@ -11,8 +11,10 @@ import { TrayComponent } from './tray/tray.component';
 import { Store } from '@ngrx/store';
 import { selectActiveWindow } from '../reducers/hyprland/hyprland.selectors';
 import { selectTrayHasItems } from '../reducers/dbus/dbus.selectors';
-import { ModalService } from '../common/modal.service';
-import { SoundComponent as SoundModal } from '../sound/sound.component';
+import { ModalPosition, ModalService } from '../common/modal.service';
+import { SoundModalComponent } from '../modals/sound/sound.component';
+import { CalendarModalComponent } from '../modals/calendar/calendar.component';
+import { PowerMenuModalComponent } from '../modals/power-menu/power-menu.component';
 
 @Component({
   selector: 'app-bar',
@@ -28,6 +30,9 @@ import { SoundComponent as SoundModal } from '../sound/sound.component';
     PowerMenuComponent,
   ],
   providers: [BarService],
+  host: {
+    class: 'absolute z-1000000 block left-0 bottom-0 w-full',
+  },
 })
 export class BarComponent {
   readonly barService = inject(BarService);
@@ -42,6 +47,17 @@ export class BarComponent {
   }
 
   openSoundModal(): void {
-    this.modalService.open(SoundModal);
+    this.modalService.open(SoundModalComponent);
+  }
+
+  openCalendar(): void {
+    this.modalService.open(CalendarModalComponent);
+  }
+
+  openPowerMenu(): void {
+    this.modalService.open(PowerMenuModalComponent, {
+      withBackdrop: true,
+      position: ModalPosition.Center,
+    });
   }
 }

@@ -6,7 +6,7 @@ mod pipewire;
 mod utils;
 
 use app_state::AppState;
-use commands::{initialize, run_menu, set_layer};
+use commands::{initialize, logout, poweroff, restart, run_menu, set_layer};
 
 use dbus::run::init_dbus;
 use hyprland::{commands::set_current_workspace, init::init_hyprland};
@@ -50,7 +50,10 @@ pub fn run() {
             set_device_mute,
             set_device_route,
             set_device_profile,
-            run_menu
+            run_menu,
+            logout,
+            restart,
+            poweroff
         ])
         .run(tauri::generate_context!())
         .unwrap();

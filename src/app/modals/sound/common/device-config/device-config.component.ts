@@ -7,7 +7,7 @@ import {
 import {
   PwDeviceProfile,
   PwDeviceRoute,
-} from '../../../reducers/pipewire/pipewire.schema';
+} from '../../../../reducers/pipewire/pipewire.schema';
 import { FormsModule } from '@angular/forms';
 
 @Component({

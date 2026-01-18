@@ -11,12 +11,12 @@ import Pikaday from 'pikaday';
 import { interval, map, startWith } from 'rxjs';
 
 @Component({
-  selector: 'app-calendar',
+  selector: 'app-calendar-modal',
   templateUrl: './calendar.component.html',
   styleUrl: './calendar.component.scss',
   imports: [DatePipe],
 })
-export class CalendarComponent {
+export class CalendarModalComponent {
   readonly time = toSignal(
     interval(1000).pipe(
       startWith(null),

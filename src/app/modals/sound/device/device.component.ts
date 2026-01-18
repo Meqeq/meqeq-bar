@@ -8,12 +8,12 @@ import {
 } from '@angular/core';
 
 import { Store } from '@ngrx/store';
-import { PwDeviceExtended } from '../../reducers/pipewire/pipewire.schema';
+import { PwDeviceExtended } from '../../../reducers/pipewire/pipewire.schema';
 import { NodeHeaderComponent } from '../common/node-header/node-header.component';
 import { VolumeSliderComponent } from '../common/volume-slider/volume-slider.component';
-import { PipewireActions } from '../../reducers/pipewire/pipewire.actions';
+import { PipewireActions } from '../../../reducers/pipewire/pipewire.actions';
 import { DeviceConfigComponent } from '../common/device-config/device-config.component';
-import { selectDefaultSink } from '../../reducers/pipewire/pipewire.selectors';
+import { selectDefaultSink } from '../../../reducers/pipewire/pipewire.selectors';
 
 @Component({
   selector: 'app-device',
