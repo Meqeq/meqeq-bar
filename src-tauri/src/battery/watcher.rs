@@ -20,22 +20,22 @@ pub async fn run_watcher(event_tx: Sender<BatteryEvent>) {
         println!("");
     }
 
-    async move {
-        let batteries: Vec<Battery> = manager
-            .batteries()
-            .unwrap()
-            .filter_map(|maybe_battery| maybe_battery.ok())
-            .collect();
+    // async move {
+    //     let batteries: Vec<Battery> = manager
+    //         .batteries()
+    //         .unwrap()
+    //         .filter_map(|maybe_battery| maybe_battery.ok())
+    //         .collect();
 
-        let prev_state = String::new();
+    //     let prev_state = String::new();
 
-        loop {
-            tokio::time::sleep(Duration::from_millis(2000)).await;
+    //     // loop {
+    //     //     tokio::time::sleep(Duration::from_millis(2000)).await;
 
-            batteries.iter().enumerate().for_each(|(id, battery)| {
-                println!("DDDBBBB {:?}", battery);
-            });
-        }
-    }
-    .await;
+    //     //     batteries.iter().enumerate().for_each(|(id, battery)| {
+    //     //         println!("DDDBBBB {:?}", battery);
+    //     //     });
+    //     // }
+    // }
+    // .await;
 }

@@ -1,5 +1,5 @@
 use gtk_layer_shell::{KeyboardMode, Layer, LayerShell};
-use std::process::Command;
+use std::{os::unix::process::CommandExt, process::Command};
 use tauri::{AppHandle, Emitter, Manager, command};
 
 use crate::app_state::AppState;
@@ -40,21 +40,19 @@ pub async fn run_menu() {
 
 #[command]
 pub async fn logout() {
-    let _ = Command::new("rofi")
-        .args(["-show", "drun", "-show-icons"])
-        .output();
+    let _ = Command::new("hyprshutdown").output();
 }
 
 #[command]
 pub async fn restart() {
-    let _ = Command::new("rofi")
-        .args(["-show", "drun", "-show-icons"])
-        .output();
+    let _ = Command::new("hyprshutdown")
+        .args(["-t", "Restarting...", "--post-cmd", "reboot"])
+        .spawn();
 }
 
 #[command]
 pub async fn poweroff() {
-    let _ = Command::new("rofi")
-        .args(["-show", "drun", "-show-icons"])
-        .output();
+    let _ = Command::new("hyprshutdown")
+        .args(["-t", "Shutting down...", "--post-cmd", "shutdown -P 0"])
+        .spawn();
 }
