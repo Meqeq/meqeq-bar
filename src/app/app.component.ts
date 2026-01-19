@@ -1,10 +1,9 @@
-import { Component } from "@angular/core";
-
-import { RouterOutlet } from "@angular/router";
+import { Component } from '@angular/core';
+import { BarComponent } from './bar/bar.component';
 
 @Component({
-  selector: "app-root",
-  templateUrl: "./app.component.html",
-  imports: [RouterOutlet],
+  selector: 'app-root',
+  imports: [BarComponent],
+  templateUrl: './app.component.html',
 })
-export class AppComponent { }
+export class AppComponent {}

@@ -1,0 +1,35 @@
+<li
+  class="list-row flex flex-col gap-4 rounded-none {{
+    default() ? 'bg-base-content/3' : ''
+  }} {{ disabled() ? 'bg-base-300/50' : '' }}"
+  [class.opacity-80]="!default()"
+>
+  <app-node-header
+    [type]="type()"
+    [default]="default()"
+    [disabled]="disabled()"
+    [title]="device().description"
+    [description]="device().mixerName"
+    [muted]="currentRoute()?.mute ?? false"
+    [(showSettings)]="showSettings"
+    (mutedChange)="changeMute($event)"
+    (defaultChange)="setDefault()"
+  />
+
+  <app-volume-slider
+    [disabled]="disabled()"
+    [volume]="volume()"
+    (volumeChange)="changeVolume($event)"
+  />
+
+  @if (showSettings()) {
+    <app-device-config
+      [enumRoutes]="enumRoutes()"
+      [enumProfiles]="enumProfiles()"
+      [route]="currentRoute()?.index ?? -1"
+      [profile]="currentProfile()?.index ?? -1"
+      (routeChange)="changeRoute($event)"
+      (profileChange)="changeProfile($event)"
+    />
+  }
+</li>

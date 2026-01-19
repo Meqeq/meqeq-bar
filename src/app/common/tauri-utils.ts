@@ -1,18 +1,25 @@
-import { Observable } from "rxjs";
-import { Event } from "@tauri-apps/api/event";
-import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { Observable } from 'rxjs';
+import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
+
+const appWebview = getCurrentWebviewWindow();
 
 export const fromTauriEvent = <Payload>(
   eventName: string,
-): Observable<Event<Payload>> => {
-  const appWebview = getCurrentWebviewWindow();
-
+): Observable<Payload> => {
   return new Observable((subscriber) => {
     const unlisten = appWebview.listen(eventName, (event) => {
-      subscriber.next({
-        ...event,
-        payload: JSON.parse(event.payload as string),
-      } as Event<Payload>);
+      subscriber.next(JSON.parse(event.payload as string) as Payload);
+    });
+    return () => {
+      unlisten.then((fn) => fn());
+    };
+  });
+};
+
+export const fromTauriEventString = (eventName: string): Observable<string> => {
+  return new Observable((subscriber) => {
+    const unlisten = appWebview.listen(eventName, (event) => {
+      subscriber.next(event.payload as string);
     });
     return () => {
       unlisten.then((fn) => fn());

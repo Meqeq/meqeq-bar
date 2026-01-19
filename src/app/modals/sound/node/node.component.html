@@ -1,0 +1,13 @@
+<li class="list-row flex flex-col gap-4 rounded-none">
+  <app-node-header
+    [type]="type()"
+    [title]="node().name"
+    [muted]="muted()"
+    (mutedChange)="changeMute($event)"
+  />
+
+  <app-volume-slider
+    [volume]="volume()"
+    (volumeChange)="changeVolume($event)"
+  />
+</li>

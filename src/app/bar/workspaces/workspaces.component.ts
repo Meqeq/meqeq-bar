@@ -1,47 +1,22 @@
-import { Component, input } from "@angular/core";
-import { toSignal } from "@angular/core/rxjs-interop";
-import { invoke } from "@tauri-apps/api/core";
-import { map } from "rxjs";
-import { fromTauriEvent } from "../../common/tauri-utils";
-
-interface WorkspaceInfo {
-  id: number;
-  name: string;
-  monitor: number;
-}
+import { Component, inject } from '@angular/core';
+import { Store } from '@ngrx/store';
+import {
+  selectActiveWorkspace,
+  selectWorkspaces,
+} from '../../reducers/hyprland/hyprland.selectors';
+import { HyprlandActions } from '../../reducers/hyprland/hyprland.actions';
 
 @Component({
-  selector: "app-workspaces",
-  templateUrl: "./workspaces.component.html",
-  styleUrl: "./workspaces.component.scss",
+  selector: 'app-workspaces',
+  templateUrl: './workspaces.component.html',
 })
 export class WorkspacesComponent {
-  readonly monitor = input.required<number>();
+  private readonly store = inject(Store);
 
-  readonly activeWorkspace = toSignal(
-    fromTauriEvent<number>("active_workspace_change").pipe(
-      map((event) => event.payload),
-    ),
-    { initialValue: 0 },
-  );
-
-  readonly workspaces = toSignal(
-    fromTauriEvent<WorkspaceInfo[]>("workspaces").pipe(
-      map((event) => event.payload),
-      map((workspaces) =>
-        workspaces.filter(
-          (workspace: any) => workspace.monitor === this.monitor(),
-        ),
-      ),
-      // tap(console.log),
-    ),
-    { initialValue: [] as WorkspaceInfo[] },
-  );
-
-  ngOnInit(): void { }
+  readonly workspaces = this.store.selectSignal(selectWorkspaces);
+  readonly activeWorkspace = this.store.selectSignal(selectActiveWorkspace);
 
   setCurrentWorkspace(id: number): void {
-    console.log(id);
-    invoke("set_current_workspace", { id });
+    this.store.dispatch(HyprlandActions.setActiveWorkspace({ id }));
   }
 }

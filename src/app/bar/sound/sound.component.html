@@ -1,5 +1,29 @@
-<app-pill>
-  <span class="text-lg font-bold"
-    >{{ soundService.defaultVolume() | number: "1.0-0" }} %</span
+<div class="flex items-center gap-1 font-mono">
+  <div
+    class="hover:text-primary h-full flex justify-center items-center cursor-pointer group"
+    [class.text-primary]="highlight()"
   >
-</app-pill>
+    <lucide-icon [img]="sinkIcon()" [size]="18" class="-mr-[0px]"></lucide-icon>
+    <div
+      class="max-w-0 group-hover:max-w-10 overflow-hidden transition-all"
+      [class.max-w-10]="highlight()"
+    >
+      <div class="text-sm font-mono" [class.text-error]="volume() > 100">
+        {{ volume() | number: "1.0-0" }}%
+      </div>
+    </div>
+  </div>
+
+  @if (isRecordingActive()) {
+    <div
+      class="relative"
+      (click)="$event.stopPropagation(); changeSourceMute()"
+    >
+      <lucide-icon [img]="micIcon()" [size]="17"></lucide-icon>
+
+      <div
+        class="absolute right-0 bottom-0 rounded-full bg-success w-[6px] h-[6px]"
+      ></div>
+    </div>
+  }
+</div>

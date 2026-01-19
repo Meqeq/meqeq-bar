@@ -1,0 +1,13 @@
+<input #input type="hidden" class="pika-single" />
+
+<div class="bg-base-100 p-4 rounded-box flex flex-col gap-2 items-center">
+  <div class="text-3xl font-bold">
+    {{ time() | date: "HH:mm:ss" }}
+  </div>
+
+  <div class="">
+    {{ time() | date: "EEEE, d MMMM y" }}
+  </div>
+
+  <div #calendar></div>
+</div>

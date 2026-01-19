@@ -1,78 +1,52 @@
-import { Component, inject } from "@angular/core";
-import { toSignal } from "@angular/core/rxjs-interop";
-import { invoke } from "@tauri-apps/api/core";
-import { map, merge, Observable, scan } from "rxjs";
-import { PillComponent } from "../../common/pill/pill.component";
-import { PopoverService } from "../../common/popover.service";
-import { fromTauriEvent } from "../../common/tauri-utils";
-import { BarService } from "../bar.service";
+import { Component, effect, inject } from '@angular/core';
 
-export interface TrayMenuEntry {
-  id: number;
-  label: string;
-  visible: boolean;
-  type: "separator" | "";
-}
-
-export interface TrayItemPayload {
-  service: string;
-  path: string;
-  title: string;
-  icon: number[];
-  menu: TrayMenuEntry[];
-  menu_path: string;
-}
-
-export interface TrayItem {
-  service: string;
-  path: string;
-  title: string;
-  icon: string;
-  menu: TrayMenuEntry[];
-  menu_path: string;
-}
+import { PopoverService } from '../../common/popover.service';
+import { Store } from '@ngrx/store';
+import { selectTrayItemsArray } from '../../reducers/dbus/dbus.selectors';
+import { DbusActions } from '../../reducers/dbus/dbus.actions';
+import { BarActions } from '../../reducers/bar/bar.actions';
+import { selectLayer } from '../../reducers/bar/bar.selectors';
 
 @Component({
-  selector: "app-tray",
-  templateUrl: "./tray.component.html",
-  imports: [PillComponent],
+  selector: 'app-tray',
+  templateUrl: './tray.component.html',
+  imports: [],
 })
 export class TrayComponent {
+  private readonly store = inject(Store);
   readonly popoverService = inject(PopoverService);
-  readonly barService = inject(BarService);
 
-  readonly trayItems = toSignal(
-    merge(this.getTrayItems("add"), this.getTrayItems("remove")).pipe(
-      scan((items, item) => {
-        if (item.type === "add") return [...items, item];
-        else return items.filter((i) => i.service !== item.service);
-      }, [] as TrayItem[]),
-    ),
-  );
+  readonly items = this.store.selectSignal(selectTrayItemsArray);
+  readonly layer = this.store.selectSignal(selectLayer);
 
-  private getTrayItems<T extends "add" | "remove">(
-    type: T,
-  ): Observable<TrayItem & { type: T }> {
-    return fromTauriEvent<TrayItemPayload>(`tray_item_${type}`).pipe(
-      map((event) => {
-        const content = new Uint8Array(event.payload.icon);
-        console.log(event.payload);
-        return {
-          type,
-          menu: event.payload.menu,
-          path: event.payload.path,
-          title: event.payload.title,
-          service: event.payload.service,
-          menu_path: event.payload.menu_path,
-          icon: URL.createObjectURL(
-            new Blob([content.buffer], { type: "image/png" } /* (1) */),
-          ),
-        };
+  callMenuItem(itemId: string, entryId: number): void {
+    this.store.dispatch(
+      DbusActions.callTrayMenuOption({
+        itemId,
+        entryId,
       }),
     );
   }
 
-  callMenuItem(params: { service: string; path: string; id: number }): void {
-    invoke("call_tray_menu_item", params);
+  ekek = effect(() => {
+    console.log(this.layer());
+  });
+
+  kek(event: ToggleEvent): void {
+    console.log('DUDUDUDUDUUDUD', event);
+    // event.preventDefault();
+
+    if (event.newState === 'open')
+      this.store.dispatch(BarActions.setTopLayer());
+    else {
+      setTimeout(() => {
+        this.store.dispatch(BarActions.setBottomLayer());
+      }, 50);
+    }
+
+    // setTimeout(() => {
+    //   (event.target as HTMLElement).showPopover();
+    //   // event.target?.dispatchEvent('');
+    // }, 1000);
   }
 }

@@ -7,11 +7,11 @@ import {
   Renderer2,
   RendererFactory2,
   TemplateRef,
-} from "@angular/core";
-import { invoke } from "@tauri-apps/api/core";
+} from '@angular/core';
+import { invoke } from '@tauri-apps/api/core';
 
 @Injectable({
-  providedIn: "root",
+  providedIn: 'root',
 })
 export class PopoverService {
   private readonly rendererFactory = inject(RendererFactory2);
@@ -25,14 +25,14 @@ export class PopoverService {
   constructor() {
     this.renderer = this.rendererFactory.createRenderer(null, null);
 
-    const container = this.renderer.selectRootElement("body", true);
+    const container = this.renderer.selectRootElement('app-bar', true);
 
-    this.popoverContainer = this.renderer.createElement("div");
+    this.popoverContainer = this.renderer.createElement('div');
 
     this.renderer.setAttribute(
       this.popoverContainer,
-      "class",
-      "absolute top-0 left-0 w-screen h-screen pointer-events-none dropdown dropdown-open overflow-hidden !block",
+      'class',
+      'absolute top-0 left-0 w-screen h-screen dropdown dropdown-open overflow-hidden !block',
     );
 
     this.renderer.appendChild(container, this.popoverContainer);
@@ -47,8 +47,8 @@ export class PopoverService {
       injector?: Injector;
     },
   ): void {
-    invoke("set_layer", {
-      layer: "top",
+    invoke('set_layer', {
+      layer: 'top',
       bar: extra.monitor ?? 0,
     }).then(() => {
       const backdrop = this.createBackdrop();
@@ -70,28 +70,37 @@ export class PopoverService {
       this.renderer.appendChild(this.popoverContainer, backdrop);
       this.renderer.appendChild(this.popoverContainer, container);
 
-      const [posX, posY] = this.getPosition(extra.anchor, container);
+      const [posX, posY] = this.getPosition(extra.anchor, 'tl');
 
-      this.renderer.setStyle(container, "top", `${posY}px`);
-      this.renderer.setStyle(container, "left", `${posX}px`);
+      console.log(
+        posX,
+        posY,
+        extra.anchor.clientTop,
+        extra.anchor.offsetTop,
+        extra.anchor.scrollTop,
+        container.getBoundingClientRect(),
+      );
 
-      backdrop.addEventListener("click", () => {
+      this.renderer.setStyle(container, 'top', `${posY}px`);
+      this.renderer.setStyle(container, 'left', `${posX}px`);
+
+      backdrop.addEventListener('click', () => {
         this.renderer.removeChild(this.popoverContainer, container);
         this.renderer.removeChild(this.popoverContainer, backdrop);
         view.destroy();
-        invoke("set_layer", {
-          layer: "bottom",
+        invoke('set_layer', {
+          layer: 'bottom',
           bar: extra.monitor ?? 0,
         });
       });
 
-      container.addEventListener("mouseleave", () => {
+      container.addEventListener('mouseleave', () => {
         this.renderer.removeChild(this.popoverContainer, container);
         this.renderer.removeChild(this.popoverContainer, backdrop);
         view.destroy();
 
-        invoke("set_layer", {
-          layer: "bottom",
+        invoke('set_layer', {
+          layer: 'bottom',
           bar: extra.monitor ?? 0,
         });
       });
@@ -99,21 +108,21 @@ export class PopoverService {
   }
 
   private createBackdrop(): HTMLDivElement {
-    const backdrop = this.renderer.createElement("div");
+    const backdrop = this.renderer.createElement('div');
     this.renderer.setAttribute(
       backdrop,
-      "class",
-      "w-full h-full pointer-events-auto absolute top-0 left-0",
+      'class',
+      'w-full h-full pointer-events-auto absolute top-0 left-0',
     );
     return backdrop;
   }
 
   private createContainer(): HTMLDivElement {
-    const container = this.renderer.createElement("div");
+    const container = this.renderer.createElement('div');
     this.renderer.setAttribute(
       container,
-      "class",
-      "pointer-events-auto absolute dropdown-content !block",
+      'class',
+      'pointer-events-auto absolute dropdown-content !block',
     );
 
     return container;
@@ -121,24 +130,19 @@ export class PopoverService {
 
   private getPosition(
     anchor: HTMLElement,
-    container: HTMLElement,
+    corner: 'tl' | 'tr' | 'bl' | 'br',
   ): [number, number] {
-    const screenWidth = document.body.clientWidth;
-    const screenHeight = document.body.clientHeight;
+    const rec = anchor.getBoundingClientRect();
 
-    const { clientWidth, clientHeight } = container;
-
-    const x = anchor.offsetLeft;
-    const y = anchor.offsetTop;
-
-    let resX = anchor.offsetLeft;
-    let resY = anchor.offsetTop + anchor.clientHeight;
-
-    if (x + clientWidth > screenWidth) resX -= clientWidth - anchor.clientWidth;
-
-    if (y + clientHeight > screenHeight)
-      resY -= clientHeight + anchor.clientHeight;
-
-    return [resX, resY];
+    switch (corner) {
+      case 'tl':
+        return [rec.left, rec.top];
+      case 'tr':
+        return [rec.right, rec.top];
+      case 'bl':
+        return [rec.left, rec.bottom];
+      case 'br':
+        return [rec.right, rec.bottom];
+    }
   }
 }

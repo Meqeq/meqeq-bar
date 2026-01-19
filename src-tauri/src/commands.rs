@@ -1,103 +1,58 @@
-use gtk_layer_shell::{Layer, LayerShell};
-use std::sync::Mutex;
-use tauri::{command, AppHandle, Emitter, Manager};
-use tokio::join;
-use zbus::zvariant::Value;
+use gtk_layer_shell::{KeyboardMode, Layer, LayerShell};
+use std::{os::unix::process::CommandExt, process::Command};
+use tauri::{AppHandle, Emitter, Manager, command};
 
-use crate::{
-    app_state::AppState,
-    dbus::{
-        dbus_menu::DbusMenuProxy, status_notifier_host::StatusNotifierHost,
-        status_notifier_watcher::StatusNotifierWatcher,
-    },
-    utils::{
-        self,
-        hyprland::{get_active_window, get_current_workspaces, init_hyprland},
-        pipewire::init_pipewire,
-    },
-};
+use crate::app_state::AppState;
 
 #[command]
 pub async fn initialize(app: AppHandle) {
-    let (active_window, workspaces) = join!(get_active_window(), get_current_workspaces());
-
-    app.emit(
-        "active_window_change",
-        serde_json::to_string(&active_window).unwrap(),
-    )
-    .unwrap();
-
-    app.emit("workspaces", serde_json::to_string(&workspaces).unwrap())
-        .unwrap();
-
-    {
-        let state = app.state::<Mutex<AppState>>();
-        let mut state = state.lock().unwrap();
-
-        if state.is_initialized() {
-            return;
-        }
-
-        state.initialize(workspaces);
-    }
-
-    let _ = join!(
-        init_hyprland(app.clone()),
-        init_pipewire(app.clone()),
-        init_dbus(app.clone()),
-    );
+    app.state::<AppState>().initialize().await;
 }
 
 #[command]
 pub async fn set_layer(app: AppHandle, bar: usize, layer: String) {
     let app_clone = app.clone();
-    app.run_on_main_thread(move || {
-        let state = app_clone.state::<Mutex<AppState>>();
-        let state = state.lock().unwrap();
-        let window = state.bars.get(bar).unwrap();
+    let layer_clone = layer.clone();
 
-        if layer == "top" {
-            window.set_layer(Layer::Top);
+    app.run_on_main_thread(move || {
+        let state = app_clone.state::<AppState>();
+        let bar = state.bars.get(bar).unwrap();
+
+        if layer_clone == "top" {
+            bar.gtk_window.set_keyboard_mode(KeyboardMode::OnDemand);
+            bar.gtk_window.set_layer(Layer::Top);
         } else {
-            window.set_layer(Layer::Bottom);
+            bar.gtk_window.set_keyboard_mode(KeyboardMode::None);
+            bar.gtk_window.set_layer(Layer::Bottom);
         }
     })
     .unwrap();
+
+    app.emit("bar_set_layer", layer).unwrap();
 }
 
 #[command]
-pub async fn set_volume(id: u32, volume: f32) {
-    utils::pipewire::set_volume(id, volume).await;
+pub async fn run_menu() {
+    let _ = Command::new("rofi")
+        .args(["-show", "drun", "-show-icons"])
+        .output();
 }
 
 #[command]
-pub async fn set_default(id: u32) {
-    utils::pipewire::set_default(id).await;
-}
-
-#[tauri::command]
-pub fn set_current_workspace(id: i32, app: AppHandle) {
-    utils::hyprland::set_current_workspace(id, app);
+pub async fn logout() {
+    let _ = Command::new("hyprshutdown").output();
 }
 
 #[command]
-pub async fn call_tray_menu_item(service: String, path: String, id: i32, app: AppHandle) {
-    let connection = {
-        let state = app.state::<Mutex<AppState>>();
-        let state = state.lock().unwrap();
-        state.connection.clone()
-    };
-
-    let proxy = DbusMenuProxy::new(&connection, service, path)
-        .await
-        .unwrap();
-
-    proxy.event(id, "clicked", &Value::I32(0), 0).await.unwrap();
+pub async fn restart() {
+    let _ = Command::new("hyprshutdown")
+        .args(["-t", "Restarting...", "--post-cmd", "reboot"])
+        .spawn();
 }
 
 #[command]
-pub async fn init_dbus(app: AppHandle) {
-    let notifier_host = StatusNotifierHost::connect(app).await;
-
-    join!(StatusNotifierWatcher::serve(), notifier_host.serve());
+pub async fn poweroff() {
+    let _ = Command::new("hyprshutdown")
+        .args(["-t", "Shutting down...", "--post-cmd", "shutdown -P 0"])
+        .spawn();
 }

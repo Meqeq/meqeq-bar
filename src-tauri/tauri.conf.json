@@ -4,10 +4,10 @@
   "version": "0.1.0",
   "identifier": "com.meqeq-bar.app",
   "build": {
-    "beforeDevCommand": "npm run serve",
-    "devUrl": "http://localhost:1420",
-    "beforeBuildCommand": "npm run build:angular",
-    "frontendDist": "../dist/bar/browser"
+    "frontendDist": "../dist/meqeq-bar/browser",
+    "devUrl": "http://localhost:4200",
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build:angular"
   },
   "app": {
     "windows": [],

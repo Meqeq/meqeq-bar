@@ -1,7 +1,5 @@
-<app-pill>
-  <span class="text-lg font-bold">{{ time() | date: "HH:mm" }}</span>
-
-  <span class="text-sm font-light text-gray-200">{{
-    time() | date: "dd MMM yyyy"
-  }}</span>
-</app-pill>
+<div
+  class="hover:text-info font-mono flex justify-center items-center cursor-pointer text-sm font-bold"
+>
+  {{ time() | date: "HH:mm" }}
+</div>

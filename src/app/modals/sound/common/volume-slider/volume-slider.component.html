@@ -1,0 +1,20 @@
+<div class="flex gap-4 items-center">
+  <div class="flex-1 flex">
+    <input
+      [disabled]="disabled()"
+      class="slider flex-1 h-1 bg-base-300 m-0"
+      type="range"
+      step="0.01"
+      min="0"
+      max="1"
+      [style.--val]="volumeDisplay()"
+      [(ngModel)]="volume"
+    />
+  </div>
+  <div
+    class="w-14 font-bold badge badge-sm badge-primary"
+    [class.badge-neutral!]="disabled()"
+  >
+    {{ volumeDisplay() }}
+  </div>
+</div>
