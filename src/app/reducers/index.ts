@@ -27,8 +27,8 @@ export const reducers: ActionReducerMap<State> = {
 
 export function debug(reducer: ActionReducer<any>): ActionReducer<any> {
   return function (state, action) {
-    console.log('state', state);
-    console.log('action', action);
+    // console.log('state', state);
+    // console.log('action', action);
 
     // if (action.type === '@ngrx/store/init') {
     //   const kek = localStorage.getItem('karwasz');

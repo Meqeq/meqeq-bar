@@ -10,7 +10,6 @@ export const selectWorkspaces = createSelector(
   selectHyprlandState,
   selectRouteParam('monitor'),
   (state, monitor) => {
-    console.log(monitor);
     if (!monitor) return [];
 
     const parsed = Number.parseInt(monitor);

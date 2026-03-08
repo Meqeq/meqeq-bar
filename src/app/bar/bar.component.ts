@@ -20,7 +20,6 @@ import { PowerMenuModalComponent } from '../modals/power-menu/power-menu.compone
   selector: 'app-bar',
   templateUrl: './bar.component.html',
   imports: [
-    RouterOutlet,
     WorkspacesComponent,
     StartComponent,
     SoundComponent,
@@ -30,8 +29,11 @@ import { PowerMenuModalComponent } from '../modals/power-menu/power-menu.compone
     PowerMenuComponent,
   ],
   providers: [BarService],
+  // host: {
+  //   class: 'absolute z-1000000 block left-0 bottom-0 w-full',
+  // },
   host: {
-    class: 'absolute z-1000000 block left-0 bottom-0 w-full',
+    class: 'block relative z-1000000',
   },
 })
 export class BarComponent {

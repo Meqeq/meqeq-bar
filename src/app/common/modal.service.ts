@@ -64,6 +64,7 @@ export class ModalService {
 
   private readonly renderer: Renderer2;
   private readonly container: HTMLBodyElement;
+  private readonly bar: HTMLDivElement;
   private readonly monitor = this.store.selectSignal(
     selectRouteParam('monitor'),
   );
@@ -73,6 +74,7 @@ export class ModalService {
   constructor() {
     this.renderer = this.rendererFactory.createRenderer(null, null);
     this.container = this.renderer.selectRootElement('app-root', true);
+    this.bar = this.container.firstChild as HTMLDivElement;
   }
 
   open<ReturnType>(
@@ -119,16 +121,27 @@ export class ModalService {
       }
     });
 
+    const barListener = (event: MouseEvent) => {
+      instance.resolve(false);
+    };
+
+    setTimeout(() => {
+      this.bar.addEventListener('click', barListener);
+    });
+
     return new Promise((resolve, reject) => {
       instance.resolve = (value: unknown) => {
         dialog.close();
+
         resolve(value as ReturnType);
         this.modals.delete(component);
+        this.bar.removeEventListener('click', barListener);
 
         setTimeout(() => {
           modalRef.destroy();
           this.renderer.removeChild(this.container, dialog);
-          this.store.dispatch(BarActions.setBottomLayer());
+          if (!this.modals.size)
+            this.store.dispatch(BarActions.setBottomLayer());
         }, 300);
       };
 
@@ -136,11 +149,13 @@ export class ModalService {
         dialog.close();
         reject(error);
         this.modals.delete(component);
+        this.bar.removeEventListener('click', barListener);
 
         setTimeout(() => {
           modalRef.destroy();
           this.renderer.removeChild(this.container, dialog);
-          this.store.dispatch(BarActions.setBottomLayer());
+          if (!this.modals.size)
+            this.store.dispatch(BarActions.setBottomLayer());
         }, 300);
       };
     });
@@ -185,14 +200,14 @@ export class ModalService {
     this.renderer.setAttribute(
       dialog,
       'class',
-      `modal p-2 pb-12 ${this.getPositionClasses(position)}`,
+      `modal  ${this.getPositionClasses(position)}`,
     );
 
     const dialogBox = this.renderer.createElement('div');
     this.renderer.setAttribute(
       dialogBox,
       'class',
-      `modal-box w-max h-max rounded-box max-w-none`,
+      `modal-box w-max h-max rounded-box max-w-none m-2 mb-12`,
     );
 
     this.renderer.appendChild(this.container, dialog);

@@ -1,5 +1,6 @@
 import {
   ApplicationRef,
+  DestroyRef,
   EmbeddedViewRef,
   inject,
   Injectable,
@@ -7,8 +8,83 @@ import {
   Renderer2,
   RendererFactory2,
   TemplateRef,
+  ElementRef,
+  computed,
+  Signal,
 } from '@angular/core';
-import { invoke } from '@tauri-apps/api/core';
+
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { fromEvent, switchMap } from 'rxjs';
+import { map } from 'rxjs/operators';
+
+export interface Popover {
+  id: Signal<string>;
+  isOpen: Signal<boolean>;
+  open: () => Promise<void>;
+  close: () => void;
+}
+
+interface CreatedPopover {
+  popover: HTMLDivElement;
+  viewRef: EmbeddedViewRef<unknown>;
+}
+
+interface PopoverOptions {
+  setMinWidth?: true;
+}
+
+export const popover = (
+  popoverTemplate: Signal<TemplateRef<unknown>>,
+  anchor: Signal<ElementRef<HTMLElement>>,
+  options?: PopoverOptions,
+): Popover => {
+  const popoverService = inject(PopoverService);
+  const destroyRef = inject(DestroyRef);
+  const injector = inject(Injector);
+
+  const created = computed(() => {
+    return popoverService.create(popoverTemplate(), {
+      anchor: anchor().nativeElement,
+      injector,
+      useMinWidth: options?.setMinWidth,
+    });
+  });
+
+  destroyRef.onDestroy(() => {
+    popoverService.destroy(created());
+  });
+
+  const isOpen = toObservable(created).pipe(
+    switchMap((pop: CreatedPopover) => {
+      return fromEvent(pop.popover, 'toggle').pipe(
+        map((e) => (e as ToggleEvent).newState === 'open'),
+      );
+    }),
+  );
+
+  return {
+    id: computed(() => created().popover.id),
+    isOpen: toSignal(isOpen, { initialValue: false }),
+    open: () =>
+      new Promise((resolve) => {
+        (created().popover as any).showPopover({
+          source: anchor().nativeElement,
+        });
+
+        const onToggle = (e: ToggleEvent) => {
+          if (e.newState === 'closed') {
+            created().popover.removeEventListener('toggle', onToggle);
+            resolve();
+          }
+        };
+
+        created().popover.addEventListener('toggle', onToggle);
+      }),
+    close: () => {
+      created().popover.togglePopover(false);
+    },
+  };
+};
 
 @Injectable({
   providedIn: 'root',
@@ -19,130 +95,88 @@ export class PopoverService {
   private readonly injector = inject(Injector);
 
   private readonly renderer: Renderer2;
+  private readonly container: HTMLDivElement;
 
-  private readonly popoverContainer: HTMLDivElement;
+  private popoverNumber = 1;
 
   constructor() {
     this.renderer = this.rendererFactory.createRenderer(null, null);
-
-    const container = this.renderer.selectRootElement('app-bar', true);
-
-    this.popoverContainer = this.renderer.createElement('div');
-
-    this.renderer.setAttribute(
-      this.popoverContainer,
-      'class',
-      'absolute top-0 left-0 w-screen h-screen dropdown dropdown-open overflow-hidden !block',
-    );
-
-    this.renderer.appendChild(container, this.popoverContainer);
+    this.container = this.renderer.selectRootElement('app-root', true);
   }
 
-  open(
+  create(
     template: TemplateRef<unknown>,
     extra: {
       anchor: HTMLElement;
       context?: object;
-      monitor?: number;
       injector?: Injector;
+      useMinWidth?: true;
     },
-  ): void {
-    invoke('set_layer', {
-      layer: 'top',
-      bar: extra.monitor ?? 0,
-    }).then(() => {
-      const backdrop = this.createBackdrop();
+  ): CreatedPopover {
+    const viewRef = template.createEmbeddedView(
+      extra.context ?? {},
+      extra.injector ? extra.injector : this.injector,
+    );
 
-      const container = this.createContainer();
+    const popover: HTMLDivElement = this.renderer.createElement('div');
 
-      const view = template.createEmbeddedView(
-        extra.context ?? {},
-        extra.injector ? extra.injector : this.injector,
+    this.renderer.setAttribute(popover, 'popover', '');
+    this.renderer.setAttribute(
+      popover,
+      'id',
+      `mqq-popover-${this.popoverNumber}`,
+    );
+    this.renderer.setAttribute(
+      popover,
+      'class',
+      'dropdown bg-base-100 shadow-lg rounded-box',
+    );
+
+    // this.renderer.setAttribute(
+    //   extra.anchor,
+    //   'popovertarget',
+    //   `mqq-popover-${this.popoverNumber}`,
+    // );
+
+    this.renderer.setStyle(
+      extra.anchor,
+      'anchor-name',
+      `--mqq-popover-anchor-${this.popoverNumber}`,
+    );
+
+    this.renderer.setStyle(
+      popover,
+      'position-anchor',
+      `--mqq-popover-anchor-${this.popoverNumber}`,
+    );
+
+    if (extra.useMinWidth)
+      this.renderer.setStyle(
+        popover,
+        'min-width',
+        `${extra.anchor.clientWidth}px`,
       );
 
-      view.rootNodes.forEach((node) => {
-        this.renderer.appendChild(container, node);
-      });
+    this.renderer.appendChild(this.container, popover);
 
-      this.applicationRef.attachView(view);
-      view.detectChanges();
+    this.renderer.setStyle(popover, 'position-area', 'bottom span-right');
 
-      this.renderer.appendChild(this.popoverContainer, backdrop);
-      this.renderer.appendChild(this.popoverContainer, container);
+    this.applicationRef.attachView(viewRef);
 
-      const [posX, posY] = this.getPosition(extra.anchor, 'tl');
-
-      console.log(
-        posX,
-        posY,
-        extra.anchor.clientTop,
-        extra.anchor.offsetTop,
-        extra.anchor.scrollTop,
-        container.getBoundingClientRect(),
-      );
-
-      this.renderer.setStyle(container, 'top', `${posY}px`);
-      this.renderer.setStyle(container, 'left', `${posX}px`);
-
-      backdrop.addEventListener('click', () => {
-        this.renderer.removeChild(this.popoverContainer, container);
-        this.renderer.removeChild(this.popoverContainer, backdrop);
-        view.destroy();
-        invoke('set_layer', {
-          layer: 'bottom',
-          bar: extra.monitor ?? 0,
-        });
-      });
-
-      container.addEventListener('mouseleave', () => {
-        this.renderer.removeChild(this.popoverContainer, container);
-        this.renderer.removeChild(this.popoverContainer, backdrop);
-        view.destroy();
-
-        invoke('set_layer', {
-          layer: 'bottom',
-          bar: extra.monitor ?? 0,
-        });
-      });
+    viewRef.rootNodes.forEach((node) => {
+      this.renderer.appendChild(popover, node);
     });
+
+    this.popoverNumber += 1;
+
+    return {
+      popover,
+      viewRef,
+    };
   }
 
-  private createBackdrop(): HTMLDivElement {
-    const backdrop = this.renderer.createElement('div');
-    this.renderer.setAttribute(
-      backdrop,
-      'class',
-      'w-full h-full pointer-events-auto absolute top-0 left-0',
-    );
-    return backdrop;
-  }
-
-  private createContainer(): HTMLDivElement {
-    const container = this.renderer.createElement('div');
-    this.renderer.setAttribute(
-      container,
-      'class',
-      'pointer-events-auto absolute dropdown-content !block',
-    );
-
-    return container;
-  }
-
-  private getPosition(
-    anchor: HTMLElement,
-    corner: 'tl' | 'tr' | 'bl' | 'br',
-  ): [number, number] {
-    const rec = anchor.getBoundingClientRect();
-
-    switch (corner) {
-      case 'tl':
-        return [rec.left, rec.top];
-      case 'tr':
-        return [rec.right, rec.top];
-      case 'bl':
-        return [rec.left, rec.bottom];
-      case 'br':
-        return [rec.right, rec.bottom];
-    }
+  destroy(created: CreatedPopover): void {
+    created.viewRef.destroy();
+    this.renderer.removeChild(this.container, created.popover);
   }
 }
