@@ -2,7 +2,7 @@
 name = "meqeq-bar"
 version = "0.1.0"
 description = "Status bar"
-authors = ["you"]
+authors = ["Meqeq"]
 license = ""
 repository = ""
 edition = "2024"
@@ -27,9 +27,9 @@ gtk = "0.18.1"
 gtk-layer-shell = { version = "0.8.2", features = ["v0_6"] }
 #glib = "0.20.9"
 hyprland = "0.4.0-beta.2"
-pipewire="0.8.0"
-libspa="0.8.0"
-libspa-sys="0.8.0"
+pipewire="0.9.2"
+libspa="0.9.2"
+libspa-sys="0.9.2"
 bytemuck = "1.15"
 zbus="5.12.0"
 rand="0.9.1"

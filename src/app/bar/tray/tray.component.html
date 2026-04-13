@@ -25,9 +25,7 @@
           </li>
         } @else if (entry.visible) {
           <li>
-            <a (click)="callMenuItem(item.id, entry.id)"
-              >{{ entry.label }} - {{ entry.id }}</a
-            >
+            <a (click)="callMenuItem(item.id, entry.id)">{{ entry.label }}</a>
           </li>
         }
       }

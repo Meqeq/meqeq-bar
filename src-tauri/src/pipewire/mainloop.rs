@@ -2,20 +2,20 @@ use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use libspa::{
     param::ParamType,
-    pod::{serialize::PodSerializer, Object, Pod, Property, PropertyFlags, Value, ValueArray},
+    pod::{Object, Pod, Property, PropertyFlags, Value, ValueArray, serialize::PodSerializer},
     utils::dict::DictRef,
 };
 
 use pipewire::{
-    channel::{channel, Receiver, Sender},
-    context::Context,
-    core::Core,
+    channel::{Receiver, Sender, channel},
+    context::{Context, ContextRc},
+    core::{Core, CoreRc},
     device::{Device, DeviceListener},
-    main_loop::MainLoop,
+    main_loop::{MainLoop, MainLoopRc},
     metadata::{Metadata, MetadataListener},
     node::{Node, NodeListener},
     proxy::ProxyListener,
-    registry::{GlobalObject, Registry},
+    registry::{GlobalObject, Registry, RegistryRc},
     types::ObjectType,
 };
 use tauri::AppHandle;
@@ -24,24 +24,19 @@ use crate::pipewire::{device::handle_pipewire_device, node::ui2pw};
 
 use super::{
     commands::PwCommand,
-    events::{handle_event, PwEvent},
+    events::{PwEvent, handle_event},
     metadata::handle_pipewire_metadata,
     node::handle_pipewire_node,
     utils::{device_set_profile, device_set_route_properties},
 };
 
-fn init() -> (Rc<MainLoop>, Rc<Registry>, Rc<Context>, Rc<Core>) {
-    let mainloop = MainLoop::new(None).unwrap();
-    let context = Context::new(&mainloop).unwrap();
-    let core = context.connect(None).unwrap();
-    let registry = core.get_registry().unwrap();
+fn init() -> (MainLoopRc, RegistryRc, ContextRc, CoreRc) {
+    let mainloop = MainLoopRc::new(None).unwrap();
+    let context = ContextRc::new(&mainloop, None).unwrap();
+    let core = context.connect_rc(None).unwrap();
+    let registry = core.get_registry_rc().unwrap();
 
-    (
-        Rc::new(mainloop),
-        Rc::new(registry),
-        Rc::new(context),
-        Rc::new(core),
-    )
+    (mainloop, registry, context, core)
 }
 
 // #[derive(Debug)]
@@ -61,7 +56,7 @@ enum Listener {
 
 fn handle_global(
     global: &GlobalObject<&DictRef>,
-    registry: Rc<Registry>,
+    registry: RegistryRc,
     event_sender: Sender<PwEvent>,
 ) -> HandleResult {
     match global.type_ {
@@ -88,7 +83,7 @@ pub fn pipewire_main_loop(command_receiver: Receiver<PwCommand>, app: AppHandle)
     let (mainloop, registry, _context, _core) = init();
     let (event_tx, event_rx): (Sender<PwEvent>, Receiver<PwEvent>) = channel();
 
-    let registry_weak = Rc::downgrade(&registry);
+    let registry_weak = registry.downgrade();
 
     let nodes = Rc::new(RefCell::new(HashMap::new()));
     let devices = Rc::new(RefCell::new(HashMap::new()));
