@@ -1,3 +1,5 @@
+use image::{ImageFormat, RgbaImage};
+use std::io::Cursor;
 use std::{
     collections::HashMap,
     fmt,
@@ -56,6 +58,20 @@ pub async fn load_icon(icon_name: String, path: String) -> tokio::io::Result<Vec
     reader.read_to_end(&mut buf).await?;
 
     Ok(buf)
+}
+
+pub fn argb32_to_png(data: &[u8], width: i32, height: i32) -> Result<Vec<u8>, image::ImageError> {
+    // Convert ARGB → RGBA by swapping channels
+    let rgba_data: Vec<u8> = data
+        .chunks_exact(4)
+        .flat_map(|pixel| [pixel[1], pixel[2], pixel[3], pixel[0]]) // ARGB → RGBA
+        .collect();
+
+    let img = RgbaImage::from_raw(width as u32, height as u32, rgba_data).unwrap();
+
+    let mut png_bytes = Vec::new();
+    img.write_to(&mut Cursor::new(&mut png_bytes), ImageFormat::Png)?;
+    Ok(png_bytes)
 }
 
 pub enum MenuParseError {

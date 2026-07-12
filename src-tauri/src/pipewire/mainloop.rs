@@ -8,14 +8,14 @@ use libspa::{
 
 use pipewire::{
     channel::{Receiver, Sender, channel},
-    context::{Context, ContextRc},
-    core::{Core, CoreRc},
+    context::ContextRc,
+    core::CoreRc,
     device::{Device, DeviceListener},
-    main_loop::{MainLoop, MainLoopRc},
+    main_loop::MainLoopRc,
     metadata::{Metadata, MetadataListener},
     node::{Node, NodeListener},
     proxy::ProxyListener,
-    registry::{GlobalObject, Registry, RegistryRc},
+    registry::{GlobalObject, RegistryRc},
     types::ObjectType,
 };
 use tauri::AppHandle;

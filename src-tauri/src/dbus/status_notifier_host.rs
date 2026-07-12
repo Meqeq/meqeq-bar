@@ -11,7 +11,9 @@ use crate::dbus::events::{
     DbusEvent, MenuEntry, TrayItem, TrayItemNewIcon, TrayItemNewMenu, TrayItemNewProp,
 };
 use crate::dbus::status_notifier_item::StatusNotifierItemProxy;
-use crate::dbus::utils::{TrayItemHandle, TrayItemHandles, load_icon, parse_as_menu_entry};
+use crate::dbus::utils::{
+    TrayItemHandle, TrayItemHandles, argb32_to_png, load_icon, parse_as_menu_entry,
+};
 
 use super::status_notifier_watcher::StatusNotifierWatcherProxy;
 
@@ -20,11 +22,21 @@ struct StatusNotifierHost {}
 #[interface(name = "org.kde.StatusNotifierHost")]
 impl StatusNotifierHost {}
 
+fn get_proxy_data(service: &String) -> (&str, &str) {
+    if service.contains("/") {
+        return service.split_once("/").unwrap();
+    }
+
+    let service = service.rsplit_once(":").unwrap().0;
+
+    (service, "StatusNotifierItem")
+}
+
 async fn get_proxy<'a>(
     connection: &'a Connection,
     service: &String,
 ) -> zbus::Result<StatusNotifierItemProxy<'a>> {
-    let (service, path) = service.split_once("/").unwrap();
+    let (service, path) = get_proxy_data(service);
 
     StatusNotifierItemProxy::new(
         &connection,
@@ -39,7 +51,7 @@ async fn get_menu_proxy<'a>(
     service: &String,
     path: &String,
 ) -> zbus::Result<DbusMenuProxy<'a>> {
-    let service = service.split_once("/").unwrap().0;
+    let (service, _) = get_proxy_data(service);
 
     DbusMenuProxy::new(&connection, service.to_string(), path.to_string()).await
 }
@@ -51,7 +63,7 @@ async fn emit_icon(id: &String, event_tx: &Sender<DbusEvent>, proxy: &StatusNoti
         && let Ok(icon_theme_path) = icon_theme_path
     {
         if let Ok(icon) = load_icon(icon_name, icon_theme_path).await {
-            event_tx
+            return event_tx
                 .send(DbusEvent::TrayItemNewIcon(TrayItemNewIcon {
                     id: id.clone(),
                     icon,
@@ -59,6 +71,25 @@ async fn emit_icon(id: &String, event_tx: &Sender<DbusEvent>, proxy: &StatusNoti
                 .await
                 .unwrap();
         }
+    }
+
+    let icon_pixmap = proxy.icon_pixmap().await;
+
+    if let Ok(icon_pixmap) = icon_pixmap {
+        let icon = argb32_to_png(
+            icon_pixmap[0].2.as_slice(),
+            icon_pixmap[0].0,
+            icon_pixmap[0].1,
+        )
+        .unwrap();
+
+        return event_tx
+            .send(DbusEvent::TrayItemNewIcon(TrayItemNewIcon {
+                id: id.clone(),
+                icon,
+            }))
+            .await
+            .unwrap();
     }
 }
 
@@ -105,6 +136,7 @@ async fn handle_prop_changes(
     let mut status_stream = proxy.receive_status_changed().await;
     let mut icon_name_stream = proxy.receive_icon_name_changed().await;
     let mut icon_theme_path_stream = proxy.receive_icon_theme_path_changed().await;
+    let mut icon_stream = proxy.receive_new_icon().await.unwrap();
 
     loop {
         tokio::select! {
@@ -112,20 +144,23 @@ async fn handle_prop_changes(
             _ = status_stream.next() => emit_status(id, &event_tx, &proxy).await,
             _ = icon_name_stream.next() => emit_icon(id, &event_tx, &proxy).await,
             _ = icon_theme_path_stream.next() => emit_icon(id, &event_tx, &proxy).await,
+            _ = icon_stream.next() => emit_icon(id, &event_tx, &proxy).await,
         }
     }
 }
 
 async fn emit_menu(id: &String, event_tx: &Sender<DbusEvent>, proxy: &DbusMenuProxy<'_>) {
-    let menu = get_menu(proxy).await.unwrap();
+    let menu = get_menu(proxy).await;
 
-    event_tx
-        .send(DbusEvent::TrayItemNewMenu(TrayItemNewMenu {
-            id: id.clone(),
-            menu,
-        }))
-        .await
-        .unwrap();
+    if let Ok(menu) = menu {
+        event_tx
+            .send(DbusEvent::TrayItemNewMenu(TrayItemNewMenu {
+                id: id.clone(),
+                menu,
+            }))
+            .await
+            .unwrap();
+    }
 }
 
 async fn handle_menu_changes(id: &String, event_tx: &Sender<DbusEvent>, proxy: &DbusMenuProxy<'_>) {

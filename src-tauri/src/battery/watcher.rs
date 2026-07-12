@@ -1,6 +1,3 @@
-use std::{any::Any, time::Duration};
-
-use battery::Battery;
 use tokio::sync::mpsc::Sender;
 
 use crate::battery::events::BatteryEvent;

@@ -29,7 +29,7 @@ export class TrayComponent {
   }
 
   ekek = effect(() => {
-    console.log(this.layer());
+    console.log(this.items());
   });
 
   kek(event: ToggleEvent): void {
