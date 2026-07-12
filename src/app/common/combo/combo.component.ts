@@ -11,7 +11,7 @@ import {
   signal,
   TemplateRef,
   untracked,
-  viewChild,
+  viewChild
 } from '@angular/core';
 import {
   ControlValueAccessor,

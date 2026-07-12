@@ -1,5 +1,5 @@
 use gtk_layer_shell::{KeyboardMode, Layer, LayerShell};
-use std::{os::unix::process::CommandExt, process::Command};
+use std::process::Command;
 use tauri::{AppHandle, Emitter, Manager, command};
 
 use crate::app_state::AppState;
