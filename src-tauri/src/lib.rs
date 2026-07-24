@@ -25,6 +25,7 @@ use utils::gtk::create_bars;
 // use crate::battery::run::init_battery;
 use crate::dbus::commands::dbus_tray_item_call_menu;
 
+use crate::dbus::mpris::run::run_mpris;
 use crate::dbus::run::run_dbus;
 use crate::state::commands::{Command, pass_commands};
 use crate::state::events::receive_events;
@@ -50,11 +51,13 @@ fn setup(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
         ) = pass_commands(&mut command_rx);
 
         let (dbus_listener, mut dbus_event_rx) = run_dbus(&mut dbus_command_rx);
+        let (mpris_listener, mut mpris_event_rx) = run_mpris();
         let (hyprland_listener, mut hyprland_event_rx) = run_hyprland(&mut hyprland_command_rx);
         let (pipewire_listener, mut pipewire_event_rx) = run_pipewire(&mut pipewire_command_rx);
 
         let _ = join!(
             dbus_listener,
+            mpris_listener,
             hyprland_listener,
             pipewire_listener,
             command_listener,
