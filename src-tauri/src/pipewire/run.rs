@@ -1,39 +1,32 @@
-use std::{
-    thread::{self},
-    time::Duration,
-};
+use pipewire::channel::{Sender, channel};
 
-use pipewire::channel::{channel, Receiver, Sender};
-use tauri::{async_runtime, AppHandle, Manager};
-use tokio::time::sleep;
+use tokio::{join, sync::mpsc, task::spawn_blocking};
 
-use crate::app_state::AppState;
+use crate::pipewire::events::PipewireEvent;
 
-use super::{commands::PwCommand, mainloop::pipewire_main_loop};
+use super::{commands::PipewireCommand, internals::mainloop::pipewire_main_loop};
 
-pub struct PipewireState {
-    command_tx: Sender<PwCommand>,
-}
-
-impl PipewireState {
-    pub fn run_command(&self, command: PwCommand) {
-        self.command_tx.send(command).unwrap();
+async fn pass_commands(rx: &mut mpsc::Receiver<PipewireCommand>, tx: Sender<PipewireCommand>) {
+    while let Some(command) = rx.recv().await {
+        tx.send(command).expect("Error passing pipewire command");
     }
 }
 
-pub fn init_pipewire(app: &AppHandle) -> PipewireState {
-    let (command_tx, command_rx): (Sender<PwCommand>, Receiver<PwCommand>) = channel();
+pub fn run_pipewire(
+    outside_command_rx: &mut mpsc::Receiver<PipewireCommand>,
+) -> (impl Future<Output = ()>, mpsc::Receiver<PipewireEvent>) {
+    let (event_tx, event_rx) = mpsc::channel::<PipewireEvent>(32);
 
-    let handle = app.clone();
-    async_runtime::spawn(async move {
-        sleep(Duration::from_millis(100)).await;
+    let (command_tx, command_rx) = channel::<PipewireCommand>();
 
-        let state = handle.state::<AppState>();
+    let listener = async move {
+        let _ = join!(
+            pass_commands(outside_command_rx, command_tx),
+            spawn_blocking(move || {
+                pipewire_main_loop(command_rx, event_tx);
+            })
+        );
+    };
 
-        state.wait_for_initialization().await;
-
-        thread::spawn(move || pipewire_main_loop(command_rx, handle));
-    });
-
-    PipewireState { command_tx }
+    (listener, event_rx)
 }

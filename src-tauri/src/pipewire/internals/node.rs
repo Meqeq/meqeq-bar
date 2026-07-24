@@ -10,18 +10,9 @@ use pipewire::{
     registry::{GlobalObject, Registry},
 };
 
-use super::{
-    events::{PwEvent, PwNode, PwNodeProps},
-    utils::deserialize,
-};
+use crate::pipewire::events::{PipewireEvent, PwNode, PwNodeProps};
 
-pub fn pw2ui(volume: f32) -> f32 {
-    volume.clamp(0.0, 1.0).powf(1.0 / 3.0)
-}
-
-pub fn ui2pw(value: f32) -> f32 {
-    value.clamp(0.0, 1.0).powf(3.0)
-}
+use super::utils::device::{deserialize, pw2ui};
 
 fn extract_info(info: &NodeInfoRef) -> Option<PwNode> {
     let mut node = PwNode::default();
@@ -86,12 +77,12 @@ fn extract_props(id: u32, pod: Option<&Pod>) -> Option<PwNodeProps> {
         for prop in param.properties {
             match prop.key {
                 libspa_sys::SPA_PROP_channelVolumes => {
-                    if let Value::ValueArray(ValueArray::Float(value)) = &prop.value {
-                        if value.len() >= 2 {
-                            props.id = id;
-                            props.volume.0 = pw2ui(value[0]);
-                            props.volume.1 = pw2ui(value[1]);
-                        }
+                    if let Value::ValueArray(ValueArray::Float(value)) = &prop.value
+                        && value.len() >= 2
+                    {
+                        props.id = id;
+                        props.volume.0 = pw2ui(value[0]);
+                        props.volume.1 = pw2ui(value[1]);
                     }
                 }
                 libspa_sys::SPA_PROP_mute => {
@@ -114,7 +105,7 @@ fn extract_props(id: u32, pod: Option<&Pod>) -> Option<PwNodeProps> {
 pub fn handle_pipewire_node(
     global: &GlobalObject<&DictRef>,
     registry: &Registry,
-    event_sender: Sender<PwEvent>,
+    event_sender: Sender<PipewireEvent>,
 ) -> (Node, NodeListener, ProxyListener) {
     let proxy = registry.bind::<Node, _>(global).unwrap();
 
@@ -126,21 +117,18 @@ pub fn handle_pipewire_node(
             let sender = event_sender.clone();
             move |info| {
                 if let Some(node) = extract_info(info) {
-                    sender.send(PwEvent::Node(node)).unwrap();
+                    sender.send(PipewireEvent::Node(node)).unwrap();
                 }
             }
         })
         .param({
             let sender = event_sender.clone();
             move |_, param_type, _, _, p5| {
-                match param_type {
-                    ParamType::Props => {
-                        if let Some(node_props) = extract_props(id, p5) {
-                            sender.send(PwEvent::NodeProps(node_props)).unwrap();
-                        }
-                    }
-                    _ => {}
-                };
+                if param_type == ParamType::Props
+                    && let Some(node_props) = extract_props(id, p5)
+                {
+                    sender.send(PipewireEvent::NodeProps(node_props)).unwrap();
+                }
             }
         })
         .register();
@@ -151,7 +139,7 @@ pub fn handle_pipewire_node(
         .removed({
             let sender = event_sender.clone();
             move || {
-                sender.send(PwEvent::NodeRemoved(id)).unwrap();
+                sender.send(PipewireEvent::NodeRemoved(id)).unwrap();
             }
         })
         .register();

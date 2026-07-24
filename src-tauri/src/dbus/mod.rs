@@ -1,8 +1,7 @@
 pub mod commands;
-mod dbus_menu;
-mod events;
+pub mod events;
+mod host;
 pub mod run;
-mod status_notifier_host;
-mod status_notifier_item;
-mod status_notifier_watcher;
+mod spec;
 mod utils;
+mod watcher;

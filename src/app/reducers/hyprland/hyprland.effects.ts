@@ -13,19 +13,19 @@ export class HyprlandEffects {
   private readonly actions$ = inject(Actions);
 
   readonly workspaces$ = createEffect(() => {
-    return fromTauriEvent<WorkspaceInfo[]>('workspaces').pipe(
+    return fromTauriEvent<WorkspaceInfo[]>('Hyprland/Workspaces').pipe(
       map((workspaces) => HyprlandActions.workspaces({ workspaces })),
     );
   });
 
   readonly activeWindow$ = createEffect(() => {
-    return fromTauriEvent<ActiveWindow>('active_window_change').pipe(
+    return fromTauriEvent<ActiveWindow>('Hyprland/ActiveWindow').pipe(
       map((activeWindow) => HyprlandActions.activeWindow({ activeWindow })),
     );
   });
 
   readonly activeWorkspace$ = createEffect(() => {
-    return fromTauriEvent<number>('active_workspace_change').pipe(
+    return fromTauriEvent<number>('Hyprland/ActiveWorkspace').pipe(
       map((activeWorkspace) =>
         HyprlandActions.activeWorkspace({ activeWorkspace }),
       ),

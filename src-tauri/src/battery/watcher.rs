@@ -2,7 +2,7 @@ use tokio::sync::mpsc::Sender;
 
 use crate::battery::events::BatteryEvent;
 
-pub async fn run_watcher(event_tx: Sender<BatteryEvent>) {
+pub async fn run_watcher(_event_tx: Sender<BatteryEvent>) {
     let manager = battery::Manager::new().unwrap();
 
     for (idx, maybe_battery) in manager.batteries().unwrap().enumerate() {
@@ -14,7 +14,6 @@ pub async fn run_watcher(event_tx: Sender<BatteryEvent>) {
         println!("Time to full charge: {:?}", battery.time_to_full());
         println!("Time to full charge: {:?}", battery.energy_rate());
         println!("Time to full charge: {:?}", battery.state_of_charge());
-        println!("");
     }
 
     // async move {

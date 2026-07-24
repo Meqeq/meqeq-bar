@@ -1,16 +1,13 @@
 use tauri::async_runtime;
 use tokio::sync::{broadcast, mpsc};
 
-use crate::{
-    dbus::run::DbusState, hyprland::init::HyprlandState, pipewire::run::PipewireState,
-    utils::gtk::Bar,
-};
+use crate::utils::gtk::Bar;
 
 pub struct AppState {
     pub bars: Vec<Bar>,
-    pub hyprland: HyprlandState,
-    pub pipewire: PipewireState,
-    pub dbus: DbusState,
+    // pub hyprland: HyprlandState,
+    // pub pipewire: PipewireState,
+    // pub dbus: DbusState,
     init_count_tx: mpsc::Sender<bool>,
     init_tx: broadcast::Sender<bool>,
 }
@@ -18,9 +15,9 @@ pub struct AppState {
 impl AppState {
     pub fn new(
         bars: Vec<Bar>,
-        hyprland: HyprlandState,
-        pipewire: PipewireState,
-        dbus: DbusState,
+        // hyprland: HyprlandState,
+        // pipewire: PipewireState,
+        // dbus: DbusState,
     ) -> AppState {
         let to_initialize = bars.len();
 
@@ -30,7 +27,7 @@ impl AppState {
         let init_tx_clone = init_tx.clone();
         async_runtime::spawn(async move {
             let mut left_to_initialize = to_initialize;
-            while let Some(_) = init_count_rx.recv().await {
+            while init_count_rx.recv().await.is_some() {
                 left_to_initialize -= 1;
 
                 if left_to_initialize == 0 {
@@ -43,9 +40,9 @@ impl AppState {
 
         AppState {
             bars,
-            hyprland,
-            pipewire,
-            dbus,
+            // hyprland,
+            // pipewire,
+            // dbus,
             init_count_tx,
             init_tx,
         }

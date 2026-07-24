@@ -1,6 +1,5 @@
 use serde::{Deserialize, Serialize};
-use tauri::{AppHandle, Emitter};
-use tokio::sync::mpsc::Receiver;
+use strum_macros::AsRefStr;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct TrayItem {
@@ -38,6 +37,8 @@ pub struct TrayItemNewMenu {
     pub menu: Vec<MenuEntry>,
 }
 
+#[derive(Debug, AsRefStr, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", untagged)]
 pub enum DbusEvent {
     RegisterTrayItem(TrayItem),
     UnregisterTrayItem(String),
@@ -45,42 +46,4 @@ pub enum DbusEvent {
     TrayItemNewIcon(TrayItemNewIcon),
     TrayItemNewProp(TrayItemNewProp),
     TrayItemNewMenu(TrayItemNewMenu),
-}
-
-pub async fn handle_events(app: &AppHandle, event_rx: &mut Receiver<DbusEvent>) {
-    while let Some(message) = event_rx.recv().await {
-        match message {
-            DbusEvent::RegisterTrayItem(item) => {
-                app.emit(
-                    "dbus_register_tray_item",
-                    serde_json::to_string(&item).unwrap(),
-                )
-                .unwrap();
-            }
-            DbusEvent::UnregisterTrayItem(item) => {
-                app.emit("dbus_unregister_tray_item", item).unwrap();
-            }
-            DbusEvent::TrayItemNewIcon(icon) => {
-                app.emit(
-                    "dbus_tray_item_new_icon",
-                    serde_json::to_string(&icon).unwrap(),
-                )
-                .unwrap();
-            }
-            DbusEvent::TrayItemNewProp(prop) => {
-                app.emit(
-                    "dbus_tray_item_new_prop",
-                    serde_json::to_string(&prop).unwrap(),
-                )
-                .unwrap();
-            }
-            DbusEvent::TrayItemNewMenu(menu) => {
-                app.emit(
-                    "dbus_tray_item_new_menu",
-                    serde_json::to_string(&menu).unwrap(),
-                )
-                .unwrap();
-            }
-        }
-    }
 }

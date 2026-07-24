@@ -1,76 +1,70 @@
+use crate::dbus::spec::dbus_menu::DbusMenuProxy;
+use crate::dbus::spec::status_notifier_host::StatusNotifierHost;
+use crate::dbus::spec::status_notifier_item::StatusNotifierItemProxy;
+use crate::dbus::spec::status_notifier_watcher::StatusNotifierWatcherProxy;
+
 use tauri::async_runtime;
 use tokio::sync::mpsc::{Receiver, Sender, channel};
 use tokio::sync::oneshot;
 use tokio::time::{Duration, sleep};
 use tokio_stream::StreamExt;
 use zbus::zvariant::Value;
-use zbus::{Connection, conn::Builder, interface};
+use zbus::{Connection, conn::Builder};
 
-use crate::dbus::dbus_menu::DbusMenuProxy;
 use crate::dbus::events::{
     DbusEvent, MenuEntry, TrayItem, TrayItemNewIcon, TrayItemNewMenu, TrayItemNewProp,
 };
-use crate::dbus::status_notifier_item::StatusNotifierItemProxy;
+
 use crate::dbus::utils::{
     TrayItemHandle, TrayItemHandles, argb32_to_png, load_icon, parse_as_menu_entry,
 };
 
-use super::status_notifier_watcher::StatusNotifierWatcherProxy;
-
-struct StatusNotifierHost {}
-
-#[interface(name = "org.kde.StatusNotifierHost")]
-impl StatusNotifierHost {}
-
-fn get_proxy_data(service: &String) -> (&str, &str) {
-    if service.contains("/") {
-        return service.split_once("/").unwrap();
-    }
-
-    let service = service.rsplit_once(":").unwrap().0;
-
-    (service, "StatusNotifierItem")
+fn get_status_notifier_item_proxy_data(service: &str) -> Option<(String, String)> {
+    service.split_once("/").map_or_else(
+        || {
+            service.rsplit_once(":").map(|(destination, _)| {
+                (destination.to_string(), "/StatusNotifierItem".to_string())
+            })
+        },
+        |(destination, path)| Some((destination.to_string(), format!("/{}", path))),
+    )
 }
 
 async fn get_proxy<'a>(
     connection: &'a Connection,
-    service: &String,
+    service: &str,
 ) -> zbus::Result<StatusNotifierItemProxy<'a>> {
-    let (service, path) = get_proxy_data(service);
+    let (destination, path) = get_status_notifier_item_proxy_data(service)
+        .expect("StatusNotiferItem service param should be correct");
 
-    StatusNotifierItemProxy::new(
-        &connection,
-        service.to_string(),
-        format!("/{}", path).to_string(),
-    )
-    .await
+    StatusNotifierItemProxy::new(connection, destination, path).await
 }
 
 async fn get_menu_proxy<'a>(
     connection: &'a Connection,
-    service: &String,
+    service: &str,
     path: &String,
 ) -> zbus::Result<DbusMenuProxy<'a>> {
-    let (service, _) = get_proxy_data(service);
+    let (destination, _) = get_status_notifier_item_proxy_data(service)
+        .expect("StatusNotiferItem service param should be correct");
 
-    DbusMenuProxy::new(&connection, service.to_string(), path.to_string()).await
+    DbusMenuProxy::new(connection, destination, path.to_string()).await
 }
 
-async fn emit_icon(id: &String, event_tx: &Sender<DbusEvent>, proxy: &StatusNotifierItemProxy<'_>) {
+async fn emit_icon(id: &str, event_tx: &Sender<DbusEvent>, proxy: &StatusNotifierItemProxy<'_>) {
     let (icon_name, icon_theme_path) = tokio::join!(proxy.icon_name(), proxy.icon_theme_path());
 
     if let Ok(icon_name) = icon_name
         && let Ok(icon_theme_path) = icon_theme_path
+        && let Ok(icon) = load_icon(icon_name, icon_theme_path).await
     {
-        if let Ok(icon) = load_icon(icon_name, icon_theme_path).await {
-            return event_tx
-                .send(DbusEvent::TrayItemNewIcon(TrayItemNewIcon {
-                    id: id.clone(),
-                    icon,
-                }))
-                .await
-                .unwrap();
-        }
+        return event_tx
+            .send(DbusEvent::TrayItemNewIcon(TrayItemNewIcon {
+                id: id.to_string(),
+                icon,
+            }))
+            .await
+            .unwrap();
     }
 
     let icon_pixmap = proxy.icon_pixmap().await;
@@ -85,7 +79,7 @@ async fn emit_icon(id: &String, event_tx: &Sender<DbusEvent>, proxy: &StatusNoti
 
         return event_tx
             .send(DbusEvent::TrayItemNewIcon(TrayItemNewIcon {
-                id: id.clone(),
+                id: id.to_string(),
                 icon,
             }))
             .await
@@ -93,15 +87,11 @@ async fn emit_icon(id: &String, event_tx: &Sender<DbusEvent>, proxy: &StatusNoti
     }
 }
 
-async fn emit_title(
-    id: &String,
-    event_tx: &Sender<DbusEvent>,
-    proxy: &StatusNotifierItemProxy<'_>,
-) {
+async fn emit_title(id: &str, event_tx: &Sender<DbusEvent>, proxy: &StatusNotifierItemProxy<'_>) {
     if let Ok(title) = proxy.title().await {
         event_tx
             .send(DbusEvent::TrayItemNewProp(TrayItemNewProp {
-                id: id.clone(),
+                id: id.to_owned(),
                 prop: title,
                 prop_name: String::from("title"),
             }))
@@ -110,17 +100,13 @@ async fn emit_title(
     }
 }
 
-async fn emit_status(
-    id: &String,
-    event_tx: &Sender<DbusEvent>,
-    proxy: &StatusNotifierItemProxy<'_>,
-) {
+async fn emit_status(id: &str, event_tx: &Sender<DbusEvent>, proxy: &StatusNotifierItemProxy<'_>) {
     if let Ok(status) = proxy.status().await {
         event_tx
             .send(DbusEvent::TrayItemNewProp(TrayItemNewProp {
-                id: id.clone(),
+                id: id.to_owned(),
                 prop: status,
-                prop_name: String::from("status"),
+                prop_name: "status".to_owned(),
             }))
             .await
             .unwrap();
@@ -128,7 +114,7 @@ async fn emit_status(
 }
 
 async fn handle_prop_changes(
-    id: &String,
+    id: &str,
     event_tx: Sender<DbusEvent>,
     proxy: StatusNotifierItemProxy<'_>,
 ) {
@@ -149,13 +135,13 @@ async fn handle_prop_changes(
     }
 }
 
-async fn emit_menu(id: &String, event_tx: &Sender<DbusEvent>, proxy: &DbusMenuProxy<'_>) {
+async fn emit_menu(id: &str, event_tx: &Sender<DbusEvent>, proxy: &DbusMenuProxy<'_>) {
     let menu = get_menu(proxy).await;
 
     if let Ok(menu) = menu {
         event_tx
             .send(DbusEvent::TrayItemNewMenu(TrayItemNewMenu {
-                id: id.clone(),
+                id: id.to_owned(),
                 menu,
             }))
             .await
@@ -163,10 +149,10 @@ async fn emit_menu(id: &String, event_tx: &Sender<DbusEvent>, proxy: &DbusMenuPr
     }
 }
 
-async fn handle_menu_changes(id: &String, event_tx: &Sender<DbusEvent>, proxy: &DbusMenuProxy<'_>) {
+async fn handle_menu_changes(id: &str, event_tx: &Sender<DbusEvent>, proxy: &DbusMenuProxy<'_>) {
     let mut stream = proxy.receive_layout_updated().await.unwrap();
 
-    while let Some(_) = stream.next().await {
+    while stream.next().await.is_some() {
         emit_menu(id, event_tx, proxy).await;
     }
 }
@@ -178,14 +164,14 @@ async fn handle_menu_calls(menu_call_rx: &mut Receiver<i32>, proxy: &DbusMenuPro
 }
 
 async fn handle_menu(
-    id: &String,
-    service: &String,
+    id: &str,
+    service: &str,
     menu_path: &String,
     connection: &Connection,
     event_tx: Sender<DbusEvent>,
     menu_call_rx: &mut Receiver<i32>,
 ) {
-    let proxy = get_menu_proxy(&connection, &service, &menu_path)
+    let proxy = get_menu_proxy(connection, service, menu_path)
         .await
         .unwrap();
 

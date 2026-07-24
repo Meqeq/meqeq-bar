@@ -35,19 +35,19 @@ export class PipewireEffects {
   private readonly store = inject(Store<State>);
 
   readonly addNode$ = createEffect(() => {
-    return fromTauriEvent<PwNode>('pw_node').pipe(
+    return fromTauriEvent<PwNode>('Pipewire/Node').pipe(
       map((node) => PipewireActions.nodeAdded({ node })),
     );
   });
 
   readonly removeNode$ = createEffect(() => {
-    return fromTauriEvent<number>('pw_node_removed').pipe(
+    return fromTauriEvent<number>('Pipewire/NodeRemoved').pipe(
       map((node) => PipewireActions.nodeRemoved({ node })),
     );
   });
 
   readonly nodeProps$ = createEffect(() => {
-    return fromTauriEvent<PwNodeProps>('pw_node_props').pipe(
+    return fromTauriEvent<PwNodeProps>('Pipewire/NodeProps').pipe(
       groupBy((props) => props.id),
       map((props$) => props$.pipe(debounceTime(250))),
       mergeAll(),
@@ -56,13 +56,13 @@ export class PipewireEffects {
   });
 
   readonly device$ = createEffect(() => {
-    return fromTauriEvent<PwDevice>('pw_device').pipe(
+    return fromTauriEvent<PwDevice>('Pipewire/Device').pipe(
       map((device) => PipewireActions.deviceAdded({ device })),
     );
   });
 
   readonly routes$ = createEffect(() => {
-    return fromTauriEvent<PwDeviceRoute>('pw_device_route').pipe(
+    return fromTauriEvent<PwDeviceRoute>('Pipewire/DeviceRoute').pipe(
       groupBy((route) => route.deviceId),
       map((routes$) =>
         routes$.pipe(
@@ -77,7 +77,7 @@ export class PipewireEffects {
   });
 
   readonly profiles$ = createEffect(() => {
-    return fromTauriEvent<PwDeviceProfile>('pw_device_profile').pipe(
+    return fromTauriEvent<PwDeviceProfile>('Pipewire/DeviceProfile').pipe(
       groupBy((profile) => profile.deviceId),
       map((profiles$) => profiles$.pipe(debounceTime(250))),
       mergeAll(),
@@ -86,13 +86,13 @@ export class PipewireEffects {
   });
 
   readonly defaultSink$ = createEffect(() => {
-    return fromTauriEvent<PwDefault>('pw_default_sink').pipe(
+    return fromTauriEvent<PwDefault>('Pipewire/DefaultSink').pipe(
       map((defaultSink) => PipewireActions.defaultSinkSet({ defaultSink })),
     );
   });
 
   readonly defaultSource$ = createEffect(() => {
-    return fromTauriEvent<PwDefault>('pw_default_source').pipe(
+    return fromTauriEvent<PwDefault>('Pipewire/DefaultSource').pipe(
       map((defaultSource) =>
         PipewireActions.defaultSourceSet({ defaultSource }),
       ),
@@ -100,7 +100,7 @@ export class PipewireEffects {
   });
 
   readonly enumProfiles$ = createEffect(() => {
-    return fromTauriEvent<PwDeviceProfile>('pw_device_enum_profile').pipe(
+    return fromTauriEvent<PwDeviceProfile>('Pipewire/DeviceEnumProfile').pipe(
       groupBy((enumProfile) => enumProfile.deviceId),
       map((deviceProfiles$) =>
         deviceProfiles$.pipe(
@@ -126,7 +126,7 @@ export class PipewireEffects {
   });
 
   readonly enumRoutes$ = createEffect(() => {
-    return fromTauriEvent<PwDeviceRoute>('pw_device_enum_route').pipe(
+    return fromTauriEvent<PwDeviceRoute>('Pipewire/DeviceEnumRoute').pipe(
       groupBy((enumProfile) => enumProfile.deviceId),
       map((deviceRoutes$) =>
         deviceRoutes$.pipe(

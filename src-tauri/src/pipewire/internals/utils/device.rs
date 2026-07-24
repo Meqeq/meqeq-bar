@@ -1,8 +1,8 @@
 use libspa::{
     param::ParamType,
     pod::{
-        deserialize::PodDeserializer, serialize::PodSerializer, Object, Pod, Property,
-        PropertyFlags, Value,
+        Object, Pod, Property, PropertyFlags, Value, deserialize::PodDeserializer,
+        serialize::PodSerializer,
     },
 };
 use pipewire::device::Device;
@@ -63,10 +63,10 @@ pub fn device_set_route_properties(
         }),
     );
 
-    if let Ok((values, _)) = values {
-        if let Some(pod) = Pod::from_bytes(&values.into_inner()) {
-            device.set_param(ParamType::Route, 0, pod);
-        }
+    if let Ok((values, _)) = values
+        && let Some(pod) = Pod::from_bytes(&values.into_inner())
+    {
+        device.set_param(ParamType::Route, 0, pod);
     }
 }
 
@@ -93,9 +93,17 @@ pub fn device_set_profile(device: &Device, profile_index: u32) {
         }),
     );
 
-    if let Ok((values, _)) = values {
-        if let Some(pod) = Pod::from_bytes(&values.into_inner()) {
-            device.set_param(ParamType::Profile, 0, pod);
-        }
+    if let Ok((values, _)) = values
+        && let Some(pod) = Pod::from_bytes(&values.into_inner())
+    {
+        device.set_param(ParamType::Profile, 0, pod);
     }
+}
+
+pub fn pw2ui(volume: f32) -> f32 {
+    volume.clamp(0.0, 1.0).powf(1.0 / 3.0)
+}
+
+pub fn ui2pw(value: f32) -> f32 {
+    value.clamp(0.0, 1.0).powf(3.0)
 }

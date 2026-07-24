@@ -1,98 +1,14 @@
 use std::collections::HashMap;
 use tokio::sync::mpsc::{Receiver, Sender, channel};
 use tokio_stream::StreamExt;
-use zbus::{
-    Connection, Result, conn::Builder, fdo::DBusProxy, interface, message::Header,
-    object_server::SignalEmitter,
+use zbus::{Connection, Result, conn::Builder, fdo::DBusProxy};
+
+use crate::dbus::{
+    spec::status_notifier_watcher::{
+        StatusNotifierWatcher, StatusNotifierWatcherSignals, WatcherEvent,
+    },
+    utils::{WriteHandle, rw_lock_handles},
 };
-
-use crate::dbus::utils::rw_lock_handles;
-
-use super::utils::{ReadHandle, WriteHandle};
-
-enum WatcherEvent {
-    RegisterItem(String, String),
-    RegisterHost(String, String),
-    Unregister(String),
-}
-
-struct StatusNotifierWatcher {
-    // connection: Connection,
-    items: ReadHandle<HashMap<String, String>>,
-    host: ReadHandle<HashMap<String, String>>,
-    event_tx: Sender<WatcherEvent>,
-}
-
-#[interface(
-    name = "org.kde.StatusNotifierWatcher",
-    proxy(
-        default_path = "/StatusNotifierWatcher",
-        default_service = "org.kde.StatusNotifierWatcher",
-    )
-)]
-impl StatusNotifierWatcher {
-    async fn register_status_notifier_item(
-        &self,
-        #[zbus(header)] header: Header<'_>,
-        path: String,
-    ) {
-        if let Some(service) = header.sender() {
-            self.event_tx
-                .send(WatcherEvent::RegisterItem(service.to_string(), path))
-                .await
-                .unwrap();
-        }
-    }
-
-    async fn register_status_notifier_host(
-        &self,
-        #[zbus(header)] header: Header<'_>,
-        path: String,
-    ) {
-        if let Some(service) = header.sender() {
-            self.event_tx
-                .send(WatcherEvent::RegisterHost(service.to_string(), path))
-                .await
-                .unwrap();
-        }
-    }
-
-    #[zbus(property)]
-    async fn registered_status_notifier_items(&self) -> Vec<String> {
-        self.items
-            .with_read(|map| map.values().cloned().collect())
-            .await
-    }
-
-    #[zbus(property)]
-    async fn is_status_notifier_host_registered(&self) -> bool {
-        self.host.with_read(|map| map.len() > 0).await
-    }
-
-    #[zbus(signal)]
-    async fn status_notifier_item_registered(
-        signal_emitter: &SignalEmitter<'_>,
-        service: String,
-    ) -> zbus::Result<()>;
-
-    #[zbus(signal)]
-    async fn status_notifier_item_unregistered(
-        signal_emitter: &SignalEmitter<'_>,
-        service: String,
-    ) -> zbus::Result<()>;
-
-    #[zbus(signal)]
-    async fn status_notifier_host_registered(
-        signal_emitter: &SignalEmitter<'_>,
-        service: String,
-    ) -> zbus::Result<()>;
-
-    #[zbus(signal)]
-    async fn status_notifier_host_unregistered(
-        signal_emitter: &SignalEmitter<'_>,
-        service: String,
-    ) -> zbus::Result<()>;
-}
 
 async fn listen_for_unregister(connection: &Connection, event_tx: Sender<WatcherEvent>) {
     let proxy = DBusProxy::new(connection).await.unwrap();
@@ -173,18 +89,13 @@ pub async fn run_watcher() -> Result<()> {
     let (items_read_handle, items_write_handle) = rw_lock_handles(HashMap::new());
     let (host_read_handle, host_write_handle) = rw_lock_handles(HashMap::new());
 
-    let watcher = StatusNotifierWatcher {
-        items: items_read_handle,
-        host: host_read_handle,
-        event_tx: event_tx.clone(),
-    };
+    let watcher = StatusNotifierWatcher::new(items_read_handle, host_read_handle, event_tx.clone());
 
     let connection = Builder::session()?
         .name("org.kde.StatusNotifierWatcher")?
         .serve_at("/StatusNotifierWatcher", watcher)?
         .build()
-        .await
-        .unwrap();
+        .await?;
 
     tokio::join!(
         listen_for_unregister(&connection, event_tx),

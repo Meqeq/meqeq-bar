@@ -18,19 +18,19 @@ export class DbusEffects {
   private readonly actions$ = inject(Actions);
 
   readonly registeredTrayItems$ = createEffect(() => {
-    return fromTauriEvent<RegisteredTrayItem>('dbus_register_tray_item').pipe(
+    return fromTauriEvent<RegisteredTrayItem>('Dbus/RegisterTrayItem').pipe(
       map((item) => DbusActions.registerTrayItem({ item })),
     );
   });
 
   readonly unregisteredTrayItems$ = createEffect(() => {
-    return fromTauriEventString('dbus_unregister_tray_item').pipe(
+    return fromTauriEventString('Dbus/UnregisterTrayItem').pipe(
       map((id) => DbusActions.unregisterTrayItem({ id })),
     );
   });
 
   readonly icons$ = createEffect(() => {
-    return fromTauriEvent<TrayItemNewIcon>('dbus_tray_item_new_icon').pipe(
+    return fromTauriEvent<TrayItemNewIcon>('Dbus/TrayItemNewIcon').pipe(
       map((item) => {
         const content = new Uint8Array(item.icon);
 
@@ -45,13 +45,13 @@ export class DbusEffects {
   });
 
   readonly trayItemProps$ = createEffect(() => {
-    return fromTauriEvent<TrayItemNewProp>('dbus_tray_item_new_prop').pipe(
+    return fromTauriEvent<TrayItemNewProp>('Dbus/TrayItemNewProp').pipe(
       map((prop) => DbusActions.trayItemNewProp(prop)),
     );
   });
 
   readonly trayItemMenus$ = createEffect(() => {
-    return fromTauriEvent<TrayItemNewMenu>('dbus_tray_item_new_menu').pipe(
+    return fromTauriEvent<TrayItemNewMenu>('Dbus/TrayItemNewMenu').pipe(
       map((menu) => DbusActions.trayItemNewMenu(menu)),
     );
   });

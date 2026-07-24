@@ -14,19 +14,16 @@ async fn on_active_window_changed(data: Option<WindowEventData>, tx: Sender<Hypr
             class: active_window.class,
             title: active_window.title,
         },
-        None => ActiveWindow {
-            class: "".to_string(),
-            title: "".to_string(),
-        },
+        None => ActiveWindow::default(),
     };
 
-    tx.send(HyprlandEvent::ActiveWindowChange(active_window))
+    tx.send(HyprlandEvent::ActiveWindow(active_window))
         .await
         .unwrap();
 
     let active_workspace = Workspace::get_active_async().await.unwrap().id;
 
-    tx.send(HyprlandEvent::ActiveWorkspaceChange(active_workspace))
+    tx.send(HyprlandEvent::ActiveWorkspace(active_workspace))
         .await
         .unwrap();
 }
@@ -44,7 +41,7 @@ async fn emit_current_workspaces(tx: Sender<HyprlandEvent>) {
         })
         .collect();
 
-    tx.send(HyprlandEvent::WorkspacesChange(workspaces))
+    tx.send(HyprlandEvent::Workspaces(workspaces))
         .await
         .unwrap();
 }

@@ -1,7 +1,7 @@
 use gtk::{
+    WindowType,
     gdk::{self, Display},
     prelude::{ContainerExt, GtkWindowExt, MonitorExt, WidgetExt},
-    WindowType,
 };
 use gtk_layer_shell::{Edge, Layer, LayerShell};
 
@@ -26,10 +26,12 @@ struct Monitors {
 
 #[derive(Debug)]
 pub struct Bar {
-    window: Window,
     webview: Webview,
     pub gtk_window: gtk::Window,
 }
+
+unsafe impl Send for Bar {}
+unsafe impl Sync for Bar {}
 
 fn get_monitors() -> Monitors {
     let display = Display::default().expect("Could not get default display");
@@ -45,11 +47,11 @@ fn get_monitors() -> Monitors {
     for index in 0..count {
         let gtk_handle = display
             .monitor(index as i32)
-            .expect(format!("Could not get monitor {}", index).as_str());
+            .unwrap_or_else(|| panic!("Could not get monitor {}", index));
         let geometry = gtk_handle.geometry();
 
         if gtk_handle.is_primary() {
-            primary = index.try_into().unwrap();
+            primary = index
         }
 
         list.push(Monitor {
@@ -132,7 +134,6 @@ fn create_bar(app: &App, monitor: &Monitor, index: usize, related_bar: Option<&B
     );
 
     Bar {
-        window,
         webview,
         gtk_window,
     }
@@ -152,7 +153,7 @@ pub fn create_bars(app: &App) -> Vec<Bar> {
         .list
         .iter()
         .filter(|monitor| monitor.index != monitors.primary)
-        .map(|monitor| create_bar(app, &monitor, monitor.index, Some(&primary)))
+        .map(|monitor| create_bar(app, monitor, monitor.index, Some(&primary)))
         .collect();
 
     bars.insert(monitors.primary, primary);

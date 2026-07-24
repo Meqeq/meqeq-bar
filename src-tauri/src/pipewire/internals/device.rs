@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 use libspa::{
     param::ParamType,
     pod::{Pod, Property, Value, ValueArray},
@@ -11,13 +9,11 @@ use pipewire::{
     registry::{GlobalObject, Registry},
 };
 
-use super::{
-    events::{
-        PwDevice, PwDeviceProfile, PwDeviceRoute, PwDeviceRouteDirection, PwEvent, PwMediaClass,
-    },
-    node::pw2ui,
-    utils::deserialize,
+use crate::pipewire::events::{
+    PipewireEvent, PwDevice, PwDeviceProfile, PwDeviceRoute, PwDeviceRouteDirection, PwMediaClass,
 };
+
+use super::utils::device::{deserialize, pw2ui};
 
 fn parse_media_class(prop: Property) -> Vec<PwMediaClass> {
     let result = vec![];
@@ -32,19 +28,18 @@ fn parse_media_class(prop: Property) -> Vec<PwMediaClass> {
             .iter()
             .skip(skip)
             .filter_map(|class| {
-                if let Value::Struct(class) = class {
-                    if let [
+                if let Value::Struct(class) = class
+                    && let [
                         Value::String(name),
                         _,
                         _,
                         Value::ValueArray(ValueArray::Int(devices)),
                     ] = class.as_slice()
-                    {
-                        return Some(PwMediaClass {
-                            name: name.to_string(),
-                            devices: devices.clone(),
-                        });
-                    }
+                {
+                    return Some(PwMediaClass {
+                        name: name.to_string(),
+                        devices: devices.clone(),
+                    });
                 }
 
                 None
@@ -103,9 +98,10 @@ fn extract_info(info: &DeviceInfoRef) -> Option<PwDevice> {
 
 fn extract_route(id: u32, pod: Option<&Pod>) -> Option<PwDeviceRoute> {
     if let Some(param) = deserialize(pod) {
-        let mut route = PwDeviceRoute::default();
-
-        route.device_id = id;
+        let mut route = PwDeviceRoute {
+            device_id: id,
+            ..Default::default()
+        };
 
         for prop in param.properties {
             match prop.key {
@@ -193,9 +189,10 @@ fn extract_route(id: u32, pod: Option<&Pod>) -> Option<PwDeviceRoute> {
 
 fn extract_profile(id: u32, pod: Option<&Pod>) -> Option<PwDeviceProfile> {
     if let Some(param) = deserialize(pod) {
-        let mut profile = PwDeviceProfile::default();
-
-        profile.device_id = id;
+        let mut profile = PwDeviceProfile {
+            device_id: id,
+            ..Default::default()
+        };
 
         for prop in param.properties {
             match prop.key {
@@ -240,9 +237,9 @@ fn extract_profile(id: u32, pod: Option<&Pod>) -> Option<PwDeviceProfile> {
 pub fn handle_pipewire_device(
     global: &GlobalObject<&DictRef>,
     registry: &Registry,
-    event_sender: Sender<PwEvent>,
-) -> (Rc<Device>, DeviceListener) {
-    let proxy = Rc::new(registry.bind::<Device, _>(global).unwrap());
+    event_sender: Sender<PipewireEvent>,
+) -> (Device, DeviceListener) {
+    let proxy = registry.bind::<Device, _>(global).unwrap();
 
     let id = global.id;
     let params = [
@@ -256,15 +253,15 @@ pub fn handle_pipewire_device(
         .add_listener_local()
         .info({
             let sender = event_sender.clone();
-            let device = { Rc::clone(&proxy) };
+            // let device = { Rc::clone(&proxy) };
             move |info| {
                 if let Some(node) = extract_info(info) {
-                    sender.send(PwEvent::Device(node)).unwrap();
+                    sender.send(PipewireEvent::Device(node)).unwrap();
                 }
 
-                for param in params {
-                    device.enum_params(0, Some(param), 0, u32::MAX);
-                }
+                // for param in params {
+                //     device.enum_params(0, Some(param), 0, u32::MAX);
+                // }
             }
         })
         .param({
@@ -275,23 +272,25 @@ pub fn handle_pipewire_device(
                     ParamType::EnumProfile => {
                         if let Some(enum_profile) = extract_profile(id, p5) {
                             sender
-                                .send(PwEvent::DeviceEnumProfile(enum_profile))
+                                .send(PipewireEvent::DeviceEnumProfile(enum_profile))
                                 .unwrap();
                         }
                     }
                     ParamType::EnumRoute => {
                         if let Some(enum_route) = extract_route(id, p5) {
-                            sender.send(PwEvent::DeviceEnumRoute(enum_route)).unwrap();
+                            sender
+                                .send(PipewireEvent::DeviceEnumRoute(enum_route))
+                                .unwrap();
                         }
                     }
                     ParamType::Profile => {
                         if let Some(profile) = extract_profile(id, p5) {
-                            sender.send(PwEvent::DeviceProfile(profile)).unwrap();
+                            sender.send(PipewireEvent::DeviceProfile(profile)).unwrap();
                         }
                     }
                     ParamType::Route => {
                         if let Some(route) = extract_route(id, p5) {
-                            sender.send(PwEvent::DeviceRoute(route)).unwrap();
+                            sender.send(PipewireEvent::DeviceRoute(route)).unwrap();
                         }
                     }
                     _ => {}

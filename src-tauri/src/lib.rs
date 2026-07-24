@@ -1,37 +1,71 @@
-mod app_state;
-mod battery;
+// mod app_state;
+// mod battery;
 mod commands;
 mod dbus;
 mod hyprland;
 mod pipewire;
+mod state;
 mod utils;
 
-use app_state::AppState;
 use commands::{initialize, logout, poweroff, restart, run_menu, set_layer};
 
-use dbus::run::init_dbus;
-use hyprland::{commands::set_current_workspace, init::init_hyprland};
+use hyprland::{commands::set_current_workspace, run::run_hyprland};
 use pipewire::commands::{
     set_default_sink, set_default_source, set_device_mute, set_device_profile, set_device_route,
     set_device_volume, set_node_mute, set_node_volume,
 };
-use pipewire::run::init_pipewire;
-use tauri::{App, Manager};
+use pipewire::run::run_pipewire;
+use tauri::{App, Manager, async_runtime};
+
+use tokio::join;
+use tokio::sync::mpsc::channel;
 
 use utils::gtk::create_bars;
 
-use crate::battery::run::init_battery;
+// use crate::battery::run::init_battery;
 use crate::dbus::commands::dbus_tray_item_call_menu;
+
+use crate::dbus::run::run_dbus;
+use crate::state::commands::{Command, pass_commands};
+use crate::state::events::receive_events;
+use crate::state::state::AppState;
 
 fn setup(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
     let bars = create_bars(app);
 
-    let hyprland = init_hyprland(app.handle());
-    let pipewire = init_pipewire(app.handle());
-    let dbus = init_dbus(app.handle());
-    init_battery(app.handle());
+    let (command_tx, mut command_rx) = channel::<Command>(32);
 
-    app.manage(AppState::new(bars, hyprland, pipewire, dbus));
+    let app_state = AppState::new(bars, command_tx);
+    app.manage(app_state);
+
+    let handle = app.handle().clone();
+    async_runtime::spawn(async move {
+        handle.state::<AppState>().wait_for_initialize().await;
+
+        let (
+            command_listener,
+            mut dbus_command_rx,
+            mut hyprland_command_rx,
+            mut pipewire_command_rx,
+        ) = pass_commands(&mut command_rx);
+
+        let (dbus_listener, mut dbus_event_rx) = run_dbus(&mut dbus_command_rx);
+        let (hyprland_listener, mut hyprland_event_rx) = run_hyprland(&mut hyprland_command_rx);
+        let (pipewire_listener, mut pipewire_event_rx) = run_pipewire(&mut pipewire_command_rx);
+
+        let _ = join!(
+            dbus_listener,
+            hyprland_listener,
+            pipewire_listener,
+            command_listener,
+            receive_events(
+                &handle,
+                &mut dbus_event_rx,
+                &mut hyprland_event_rx,
+                &mut pipewire_event_rx
+            ),
+        );
+    });
 
     Ok(())
 }

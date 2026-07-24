@@ -61,10 +61,9 @@ pub async fn load_icon(icon_name: String, path: String) -> tokio::io::Result<Vec
 }
 
 pub fn argb32_to_png(data: &[u8], width: i32, height: i32) -> Result<Vec<u8>, image::ImageError> {
-    // Convert ARGB → RGBA by swapping channels
     let rgba_data: Vec<u8> = data
         .chunks_exact(4)
-        .flat_map(|pixel| [pixel[1], pixel[2], pixel[3], pixel[0]]) // ARGB → RGBA
+        .flat_map(|pixel| [pixel[1], pixel[2], pixel[3], pixel[0]])
         .collect();
 
     let img = RgbaImage::from_raw(width as u32, height as u32, rgba_data).unwrap();
