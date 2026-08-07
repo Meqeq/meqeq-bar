@@ -14,6 +14,7 @@ import { provideRouterStore } from '@ngrx/router-store';
 import { PipewireEffects } from './reducers/pipewire/pipewire.effects';
 import { DbusEffects } from './reducers/dbus/dbus.effects';
 import { BarEffects } from './reducers/bar/bar.effects';
+import { PlayerEffects } from './reducers/player/player.effects';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -23,7 +24,13 @@ export const appConfig: ApplicationConfig = {
       routes,
       withRouterConfig({ paramsInheritanceStrategy: 'always' }),
     ),
-    provideEffects([HyprlandEffects, PipewireEffects, DbusEffects, BarEffects]),
+    provideEffects([
+      HyprlandEffects,
+      PipewireEffects,
+      PlayerEffects,
+      DbusEffects,
+      BarEffects,
+    ]),
     provideStore(reducers, {
       metaReducers,
     }),

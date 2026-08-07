@@ -1,0 +1,58 @@
+<div class="w-108">
+  <!-- <ul -->
+  <!--   class="menu menu-xs menu-horizontal bg-base-200 rounded-field self-start mb-4" -->
+  <!-- > -->
+  <!--   @for (player of players(); track $index) { -->
+  <!--     <li> -->
+  <!--       <a -->
+  <!--         [class.menu-active]="player.name === selectedPlayer()?.name" -->
+  <!--         (click)="selectPlayer(player.name)" -->
+  <!--       > -->
+  <!--         {{ player.identity }} -->
+  <!--         @if (player.name === activePlayer()) { -->
+  <!--           <lucide-icon [img]="icons.playing" [size]="8"></lucide-icon> -->
+  <!--         } -->
+  <!--       </a> -->
+  <!--     </li> -->
+  <!--   } -->
+  <!-- </ul> -->
+
+  <app-player-info />
+  <app-player-progress />
+  <app-player-control />
+  <!-- <div class="w-full flex justify-center p-8 gap-4"> -->
+  <!--   <button class="btn btn-ghost btn-circle"> -->
+  <!--     <lucide-icon [img]="loopIcon()" [size]="20"></lucide-icon> -->
+  <!--   </button> -->
+
+  <!--   <button class="btn btn-ghost btn-circle"> -->
+  <!--     <lucide-icon [img]="shuffleIcon()" [size]="20"></lucide-icon> -->
+  <!--   </button> -->
+
+  <!--   <button -->
+  <!--     class="btn btn-ghost btn-circle" -->
+  <!--     [disabled]="!additionalData.abilities.goPrevious" -->
+  <!--     (click)="prev()" -->
+  <!--   > -->
+  <!--     <lucide-icon [img]="icons.prev" [size]="24"></lucide-icon> -->
+  <!--   </button> -->
+
+  <!--   <button -->
+  <!--     class="btn btn-ghost btn-circle" -->
+  <!--     (click)="currentlyPlaying() ? pause() : play()" -->
+  <!--   > -->
+  <!--     <lucide-icon -->
+  <!--       [img]="currentlyPlaying() ? icons.pause : icons.play" -->
+  <!--       [size]="32" -->
+  <!--     ></lucide-icon> -->
+  <!--   </button> -->
+
+  <!--   <button -->
+  <!--     class="btn btn-ghost btn-circle" -->
+  <!--     [disabled]="!additionalData.abilities.goNext" -->
+  <!--     (click)="next()" -->
+  <!--   > -->
+  <!--     <lucide-icon [img]="icons.next" [size]="24"></lucide-icon> -->
+  <!--   </button> -->
+  <!-- </div> -->
+</div>

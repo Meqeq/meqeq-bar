@@ -17,50 +17,50 @@ pub trait TrackList {
     /// AddTrack method
     fn add_track(
         &self,
-        Uri: &str,
-        AfterTrack: &zbus::zvariant::ObjectPath<'_>,
-        SetAsCurrent: bool,
+        uri: &str,
+        after_track: &zbus::zvariant::ObjectPath<'_>,
+        set_as_current: bool,
     ) -> zbus::Result<()>;
 
     /// GetTracksMetadata method
     fn get_tracks_metadata(
         &self,
-        TrackIds: &[&zbus::zvariant::ObjectPath<'_>],
+        track_ids: &[&zbus::zvariant::ObjectPath<'_>],
     ) -> zbus::Result<Vec<std::collections::HashMap<String, zbus::zvariant::OwnedValue>>>;
 
     /// GoTo method
-    fn go_to(&self, TrackId: &zbus::zvariant::ObjectPath<'_>) -> zbus::Result<()>;
+    fn go_to(&self, track_id: &zbus::zvariant::ObjectPath<'_>) -> zbus::Result<()>;
 
     /// RemoveTrack method
-    fn remove_track(&self, TrackId: &zbus::zvariant::ObjectPath<'_>) -> zbus::Result<()>;
+    fn remove_track(&self, track_id: &zbus::zvariant::ObjectPath<'_>) -> zbus::Result<()>;
 
     /// TrackAdded signal
     #[zbus(signal)]
     fn track_added(
         &self,
-        Metadata: std::collections::HashMap<&str, zbus::zvariant::Value<'_>>,
-        AfterTrack: zbus::zvariant::ObjectPath<'_>,
+        metadata: std::collections::HashMap<&str, zbus::zvariant::Value<'_>>,
+        after_track: zbus::zvariant::ObjectPath<'_>,
     ) -> zbus::Result<()>;
 
     /// TrackListReplaced signal
     #[zbus(signal)]
     fn track_list_replaced(
         &self,
-        Tracks: Vec<zbus::zvariant::ObjectPath<'_>>,
-        CurrentTrack: zbus::zvariant::ObjectPath<'_>,
+        tracks: Vec<zbus::zvariant::ObjectPath<'_>>,
+        current_track: zbus::zvariant::ObjectPath<'_>,
     ) -> zbus::Result<()>;
 
     /// TrackMetadataChanged signal
     #[zbus(signal)]
     fn track_metadata_changed(
         &self,
-        TrackId: zbus::zvariant::ObjectPath<'_>,
-        Metadata: std::collections::HashMap<&str, zbus::zvariant::Value<'_>>,
+        track_id: zbus::zvariant::ObjectPath<'_>,
+        metadata: std::collections::HashMap<&str, zbus::zvariant::Value<'_>>,
     ) -> zbus::Result<()>;
 
     /// TrackRemoved signal
     #[zbus(signal)]
-    fn track_removed(&self, TrackId: zbus::zvariant::ObjectPath<'_>) -> zbus::Result<()>;
+    fn track_removed(&self, track_id: zbus::zvariant::ObjectPath<'_>) -> zbus::Result<()>;
 
     /// CanEditTracks property
     #[zbus(property)]

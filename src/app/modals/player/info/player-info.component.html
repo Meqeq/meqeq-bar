@@ -1,0 +1,12 @@
+<div class="w-full flex gap-4 items-center">
+  <img class="w-24 h-24 rounded-field" [src]="info().cover" />
+
+  <div class="flex-1 flex justify-center">
+    <div>
+      <h3 class="text-xl font-bold pb-1">{{ info().title }}</h3>
+      <span class="text-sm text-base-content/80">{{ info().artist }}</span>
+      <span class="text-sm text-base-content/60"> · </span>
+      <span class="text-sm text-base-content/60">{{ info().album }}</span>
+    </div>
+  </div>
+</div>

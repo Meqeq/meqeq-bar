@@ -44,6 +44,7 @@ battery = "0.7.8"
 image = "0.25.10"
 strum = "0.28"
 strum_macros = "0.28"
+futures = "0.3"
 
 [profile.dev]
 opt-level = 1

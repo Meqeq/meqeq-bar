@@ -15,28 +15,28 @@ use zbus::proxy;
 #[proxy(interface = "org.mpris.MediaPlayer2.Playlists", assume_defaults = true)]
 pub trait Playlists {
     /// ActivatePlaylist method
-    fn activate_playlist(&self, PlaylistId: &zbus::zvariant::ObjectPath<'_>) -> zbus::Result<()>;
+    fn activate_playlist(&self, playlist_id: &zbus::zvariant::ObjectPath<'_>) -> zbus::Result<()>;
 
     /// GetPlaylistIconFd method
     fn get_playlist_icon_fd(
         &self,
-        PlaylistId: &zbus::zvariant::ObjectPath<'_>,
+        playlist_id: &zbus::zvariant::ObjectPath<'_>,
     ) -> zbus::Result<(String, zbus::zvariant::OwnedFd)>;
 
     /// GetPlaylists method
     fn get_playlists(
         &self,
-        Index: u32,
-        MaxCount: u32,
-        Order: &str,
-        ReverseOrder: bool,
+        index: u32,
+        max_count: u32,
+        order: &str,
+        reverse_order: bool,
     ) -> zbus::Result<Vec<(zbus::zvariant::OwnedObjectPath, String, String)>>;
 
     /// PlaylistChanged signal
     #[zbus(signal)]
     fn playlist_changed(
         &self,
-        Playlist: (zbus::zvariant::ObjectPath<'_>, &str, &str),
+        playlist: (zbus::zvariant::ObjectPath<'_>, &str, &str),
     ) -> zbus::Result<()>;
 
     /// ActivePlaylist property

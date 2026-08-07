@@ -2,8 +2,8 @@
   <div class="flex w-full h-8 justify-between">
     <div class="flex-1 flex">
       <div class="bg-base-100 rounded-field flex overflow-hidden">
-        <app-start></app-start>
-        <app-workspaces></app-workspaces>
+        <app-start />
+        <app-workspaces />
       </div>
     </div>
 
@@ -16,8 +16,12 @@
       <div
         class="flex items-center gap-2 pl-2 bg-base-100 rounded-field overflow-hidden"
       >
-        <app-sound (click)="openSoundModal()"></app-sound>
-        <app-ethernet></app-ethernet>
+        <app-sound (click)="openSoundModal()" />
+        <app-ethernet />
+
+        @if (showPlayer()) {
+          <app-player (click)="openPlayer()" />
+        }
 
         @if (showTray()) {
           <div class="divider divider-horizontal w-0! mx-0 py-2"></div>
@@ -25,8 +29,8 @@
         }
 
         <div class="divider divider-horizontal w-0! mx-0 py-2"></div>
-        <app-clock (click)="openCalendar()"></app-clock>
-        <app-power-menu (click)="openPowerMenu()"></app-power-menu>
+        <app-clock (click)="openCalendar()" />
+        <app-power-menu (click)="openPowerMenu()" />
       </div>
     </div>
   </div>

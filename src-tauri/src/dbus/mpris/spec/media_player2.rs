@@ -12,7 +12,11 @@
 //! [Writing a client proxy]: https://dbus2.github.io/zbus/client.html
 //! [D-Bus standard interfaces]: https://dbus.freedesktop.org/doc/dbus-specification.html#standard-interfaces,
 use zbus::proxy;
-#[proxy(interface = "org.mpris.MediaPlayer2", assume_defaults = true)]
+#[proxy(
+    interface = "org.mpris.MediaPlayer2",
+    default_path = "/org/mpris/MediaPlayer2",
+    assume_defaults = true
+)]
 pub trait MediaPlayer2 {
     /// Quit method
     fn quit(&self) -> zbus::Result<()>;

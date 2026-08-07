@@ -1,0 +1,39 @@
+<div class="w-full flex justify-center items-center py-4 gap-4">
+  <button
+    class="btn btn-ghost btn-circle"
+    [class.text-primary]="metadata().shuffle"
+    (click)="shuffle()"
+  >
+    <lucide-icon [img]="icons.shuffle" [size]="16" />
+  </button>
+
+  <button
+    class="btn btn-ghost btn-circle"
+    [disabled]="!abilities().goPrevious"
+    (click)="prev()"
+  >
+    <lucide-icon [img]="icons.prev" [size]="20" />
+  </button>
+
+  <button
+    class="btn btn-lg btn-primary btn-circle"
+    (click)="currentlyPlaying() ? pause() : play()"
+  >
+    <lucide-icon
+      [img]="currentlyPlaying() ? icons.pause : icons.play"
+      [size]="28"
+    />
+  </button>
+
+  <button
+    class="btn btn-ghost btn-circle"
+    [disabled]="!abilities().goNext"
+    (click)="next()"
+  >
+    <lucide-icon [img]="icons.next" [size]="20" />
+  </button>
+
+  <button class="btn btn-ghost btn-circle">
+    <lucide-icon [img]="loopIcon()" [size]="16" />
+  </button>
+</div>

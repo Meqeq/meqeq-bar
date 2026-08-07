@@ -1,0 +1,23 @@
+<div class="py-4">
+  <div
+    class="w-full rounded-lg h-2 bg-base-200 mb-3"
+    [class.hover:bg-base-300]="canSeek()"
+    [class.cursor-pointer]="canSeek()"
+    (click)="handleSeek($event)"
+  >
+    <div
+      class="h-2 bg-primary rounded-lg {{ progressAnimationClasses() }}"
+      [style.width]="`${progress()}%`"
+    ></div>
+  </div>
+
+  <div class="w-full flex justify-between">
+    <div class="text-xs text-base-content/60">
+      {{ current() }}
+    </div>
+
+    <div class="text-xs text-base-content/60">
+      {{ total() }}
+    </div>
+  </div>
+</div>

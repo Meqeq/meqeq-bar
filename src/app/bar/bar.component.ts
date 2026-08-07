@@ -15,6 +15,12 @@ import { ModalPosition, ModalService } from '../common/modal.service';
 import { SoundModalComponent } from '../modals/sound/sound.component';
 import { CalendarModalComponent } from '../modals/calendar/calendar.component';
 import { PowerMenuModalComponent } from '../modals/power-menu/power-menu.component';
+import {
+  selectActivePlayer,
+  selectCurrentlyPlaying,
+} from '../reducers/player/player.selectors';
+import { PlayerComponent } from './player/player.component';
+import { PlayerModalComponent } from '../modals/player/player.component';
 
 @Component({
   selector: 'app-bar',
@@ -26,6 +32,7 @@ import { PowerMenuModalComponent } from '../modals/power-menu/power-menu.compone
     ClockComponent,
     TrayComponent,
     EthernetComponent,
+    PlayerComponent,
     PowerMenuComponent,
   ],
   providers: [BarService],
@@ -43,6 +50,9 @@ export class BarComponent {
 
   readonly activeWindow = this.store.selectSignal(selectActiveWindow);
   readonly showTray = this.store.selectSignal(selectTrayHasItems);
+  readonly showPlayer = this.store.selectSignal(selectCurrentlyPlaying);
+
+  readonly activePlayer = this.store.selectSignal(selectActivePlayer);
 
   ngOnInit(): void {
     this.barService.init();
@@ -54,6 +64,10 @@ export class BarComponent {
 
   openCalendar(): void {
     this.modalService.open(CalendarModalComponent);
+  }
+
+  openPlayer(): void {
+    this.modalService.open(PlayerModalComponent);
   }
 
   openPowerMenu(): void {

@@ -12,7 +12,11 @@
 //! [Writing a client proxy]: https://dbus2.github.io/zbus/client.html
 //! [D-Bus standard interfaces]: https://dbus.freedesktop.org/doc/dbus-specification.html#standard-interfaces,
 use zbus::proxy;
-#[proxy(interface = "org.mpris.MediaPlayer2.Player", assume_defaults = true)]
+#[proxy(
+    interface = "org.mpris.MediaPlayer2.Player",
+    default_path = "/org/mpris/MediaPlayer2",
+    assume_defaults = true
+)]
 pub trait Player {
     /// GetArtworkFd method
     fn get_artwork_fd(&self) -> zbus::Result<(String, zbus::zvariant::OwnedFd)>;
@@ -21,7 +25,7 @@ pub trait Player {
     fn next(&self) -> zbus::Result<()>;
 
     /// OpenUri method
-    fn open_uri(&self, Uri: &str) -> zbus::Result<()>;
+    fn open_uri(&self, uri: &str) -> zbus::Result<()>;
 
     /// Pause method
     fn pause(&self) -> zbus::Result<()>;
@@ -36,13 +40,13 @@ pub trait Player {
     fn previous(&self) -> zbus::Result<()>;
 
     /// Seek method
-    fn seek(&self, Offset: i64) -> zbus::Result<()>;
+    fn seek(&self, offset: i64) -> zbus::Result<()>;
 
     /// SetPosition method
     fn set_position(
         &self,
-        TrackId: &zbus::zvariant::ObjectPath<'_>,
-        Position: i64,
+        track_id: &zbus::zvariant::ObjectPath<'_>,
+        position: i64,
     ) -> zbus::Result<()>;
 
     /// Stop method
@@ -50,7 +54,7 @@ pub trait Player {
 
     /// Seeked signal
     #[zbus(signal)]
-    fn seeked(&self, Position: i64) -> zbus::Result<()>;
+    fn seeked(&self, position: i64) -> zbus::Result<()>;
 
     /// CanControl property
     #[zbus(property)]
@@ -101,7 +105,7 @@ pub trait Player {
     fn playback_status(&self) -> zbus::Result<String>;
 
     /// Position property
-    #[zbus(property)]
+    #[zbus(property(emits_changed_signal = "false"))]
     fn position(&self) -> zbus::Result<i64>;
 
     /// Rate property

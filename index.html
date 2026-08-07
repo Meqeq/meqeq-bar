@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Media Player</title>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet" type="text/css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen flex items-center justify-center bg-base-200 p-4">
+
+  <!-- Media Player Card -->
+  <div class="card w-[32rem] bg-base-100 shadow-xl">
+    <div class="card-body gap-4">
+      <!-- Cover + Track info -->
+      <div class="flex items-center gap-4 w-full">
+        <div class="h-20 w-20 shrink-0 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-primary-content opacity-80" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z"/>
+          </svg>
+        </div>
+        <div class="min-w-0 flex-1">
+          <h2 class="card-title truncate">Midnight Drive</h2>
+          <p class="text-sm text-base-content/60 truncate">Neon Skies · Album: Afterglow</p>
+        </div>
+      </div>
+
+      <!-- Progress bar -->
+      <div class="w-full">
+        <progress class="progress progress-primary w-full" value="40" max="100"></progress>
+        <div class="flex justify-between text-xs text-base-content/60 mt-1">
+          <span>1:42</span>
+          <span>4:05</span>
+        </div>
+      </div>
+
+      <!-- Controls -->
+      <div class="flex items-center justify-center gap-4 w-full">
+        <button class="btn btn-circle btn-ghost btn-sm" aria-label="Shuffle">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/>
+          </svg>
+        </button>
+        <button class="btn btn-circle btn-ghost" aria-label="Previous">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/>
+          </svg>
+        </button>
+        <button class="btn btn-circle btn-primary btn-lg" aria-label="Play">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M8 5v14l11-7z"/>
+          </svg>
+        </button>
+        <button class="btn btn-circle btn-ghost" aria-label="Next">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M16 6h2v12h-2zM6 18l8.5-6L6 6z"/>
+          </svg>
+        </button>
+        <button class="btn btn-circle btn-ghost btn-sm" aria-label="Repeat">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17 1l4 4-4 4M3 11V9a4 4 0 0 1 4-4h14M7 23l-4-4 4-4M21 13v2a4 4 0 0 1-4 4H3"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Volume -->
+      <div class="w-full flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-base-content/60" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M3 9v6h4l5 5V4L7 9H3z"/>
+        </svg>
+        <input type="range" min="0" max="100" value="70" class="range range-xs range-primary flex-1">
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
